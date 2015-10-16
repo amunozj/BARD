@@ -602,6 +602,8 @@ END
 ;EDITS
 PRO main_ar_id, start_date=start_date, continue = continue, restoref = restoref, pnr_file = pnr_file, labl = labl, buff = buff, nobuff = nobuff, kerth1=kerth1, kerth2=kerth2, arth=arth, eros=eros, dila=dila, dislim=dislim, ovrlim=ovrlim, ardislim1=ardislim1, exp_f=exp_f, exp_d=exp_d, exp_s=exp_s, MxFlxim=MxFlxim, instr = instr
 
+device,retain=2
+  
 ;Creating backups------------------------
 
 ;Final State
@@ -658,7 +660,7 @@ endif
 
 ;HMI
 if instr eq 4 then begin
-	seg_const={ker_th:400.0, ker_th2:200.0, ar_th:150.0, ar_th2:50.0, eros_size:10.0, dila_size:20.0, npssu:2, dis_lim:2.0, ovr_lim: 0.2, qr_th:60.0, mxB: 0.0, k_sig:15.0, ar_grow_sig:20., valid_range:[-20000.,20000.], deg_lim:70.0}
+	seg_const={ker_th:200.0, ker_th2:200.0, ar_th:150.0, ar_th2:50.0, eros_size:10.0, dila_size:30.0, npssu:1, dis_lim:2.0, ovr_lim: 0.0, qr_th:60.0, mxB: 0.0, k_sig:15.0, ar_grow_sig:20., valid_range:[-20000.,20000.], deg_lim:70.0}
 endif
 
 ;EDITS
@@ -995,7 +997,7 @@ REPEAT BEGIN
       tmp_in = where((PRs.mdi_i eq mdi_ir) and (PRs.lnk_sw eq 0), n_prs)
       tmp_in = where((NRs.mdi_i eq mdi_ir) and (NRs.lnk_sw eq 0), n_nrs)
 ;      tmp_in = where((ARs.mdi_i eq mdi_ir), n_ars)     
-    ;  detar_sw = 0;
+;      detar_sw = 0;
     
 ;      if ( (detar_sw eq 1) and ( n_prs gt 0 ) and ( n_nrs gt 0 ) and ( n_ars eq 0 ) ) then begin
       if ( (detar_sw eq 1) and ( n_prs gt 0 ) and ( n_nrs gt 0 ) ) then begin
@@ -1007,7 +1009,7 @@ REPEAT BEGIN
       
       ;Definition of window parameters and window initialization
 ;      pls = 800;
-      pls = 400;
+      pls = 500;
       pad = 40;
       plxy = 100;
       plxx = 200;
@@ -1056,9 +1058,9 @@ REPEAT BEGIN
   REPEAT BEGIN 
     redraw = 0
     print, 'Please make a choice'
-;     tmpcs = 13
-;     CASE (tmpcs) of ;button_choice(pls, pad, plxy, plxx) OF
-    CASE button_choice(pls, pad, plxy, plxx) OF
+     tmpcs = 13
+     CASE (tmpcs) of ;button_choice(pls, pad, plxy, plxx) OF
+;   CASE button_choice(pls, pad, plxy, plxx) OF
       0: BEGIN
             print, 'Please click inside one of the buttons'
           
@@ -1580,10 +1582,11 @@ REPEAT BEGIN
      13: BEGIN
             print, 'Print Screen'
 ;            tmp_fl = 'prnt_' + strtrim(string(mdi_ir,'(I)'),2) + '_' + strtrim(string(seg_const.ker_th,'(I)'),2) + '_' + strtrim(string(seg_const.ker_th2,'(I)'),2) + '_' + strtrim(string(seg_const.ar_th,'(I)'),2) + '_' + strtrim(string(seg_const.eros_size,'(I)'),2) + '_' + strtrim(string(seg_const.dila_size,'(I)'),2) + '_' + strtrim(string(seg_const.dis_lim,'(I)'),2) + '_' + strtrim(string(seg_const.ovr_lim,'(F3.1)'),2) + '.png'
-            tmp_fl = 'prnt_density_test-75_' + strtrim(string(mdi_ir,'(I)'),2) + '_' + strtrim(string(seg_const.ker_th,'(I)'),2) + '_' + strtrim(string(seg_const.eros_size,'(I)'),2) + '_' + strtrim(string(seg_const.dila_size,'(I)'),2) + '_'+ strtrim(string(seg_const.ker_th2,'(I)'),2) + '_' + strtrim(string(seg_const.ar_th,'(I)'),2) + '_'  + strtrim(string(seg_const.dis_lim,'(I)'),2) + '_' + strtrim(string(seg_const.ovr_lim,'(F3.1)'),2) + '.png'
+            tmp_fl = 'prnt_' + strtrim(string(mdi_ir,'(I)'),2) + '_' + strtrim(string(seg_const.ker_th,'(I)'),2) + '_' + strtrim(string(seg_const.eros_size,'(I)'),2) + '_' + strtrim(string(seg_const.dila_size,'(I)'),2) + '_'+ strtrim(string(seg_const.ker_th2,'(I)'),2) + '_' + strtrim(string(seg_const.ar_th,'(I)'),2) + '_'  + strtrim(string(seg_const.dis_lim,'(I)'),2) + '_' + strtrim(string(seg_const.ovr_lim,'(F3.1)'),2) + '.png'
 ;            tmp_fl = 'prnt_AR_not_merge' + strtrim(string(mdi_ir,'(I)'),2) + '_' + strtrim(string(ar_cnst.dis_lim1,'(F4.1)'),2) + '_' + strtrim(string(ar_cnst.MxFlxim,'(F4.1)'),2) + '_' + strtrim(string(ar_cnst.exp_f,'(F4.1)'),2) + '_' + strtrim(string(ar_cnst.exp_d,'(F4.1)'),2) + '_'+ strtrim(string(ar_cnst.exp_s,'(F4.1)'),2) + '_' + strtrim(string(seg_const.ar_th,'(I)'),2) + '.png'
             write_png, tmp_fl, TVRD(/true)
-;            stat = 0
+            stat = 0
+            sv_sw = 0
          END	  
      14: BEGIN
             print, 'Post-Detection Merge'
@@ -1608,7 +1611,7 @@ REPEAT BEGIN
       			date = ''
       			read, 'Enter date (e.g. 2001-08-31): ', date
       			
-      			mg_tmp = amj_file_read( date, hdrr )
+      			mg_tmp = amj_file_read( date, hdrr, instr)
             mdi_tmp  = julday(strmid(date,5,2),strmid(date,8,2),strmid(date,0,4))-DayOff
       			
       			tmpsize = size(mg_tmp)
@@ -1644,7 +1647,7 @@ REPEAT BEGIN
             date = ''
             read, 'Enter date (e.g. 2001-08-31): ', date
 
-            mg_tmp = amj_file_read( date, hdrr )
+            mg_tmp = amj_file_read( date, hdrr, instr)
             mdi_tmp  = julday(strmid(date,5,2),strmid(date,8,2),strmid(date,0,4))-DayOff
             
             tmpsize = size(mg_tmp)
@@ -1715,9 +1718,9 @@ REPEAT BEGIN
             spawn, '\cp -f Ar_id_Save0.sav Ar_id_Save_Bckp.sav'
                   
             if (n_elements(PRsFr) gt 0) or (n_elements(NRsFr) gt 0) then begin         
-                SAVE, ARs, PRs, NRs, PRsFr, NRsFr, mdi_il, mdi_ir, lbl, prepnr_sw, mdi_ir_vis, buff_sw, instr, FILENAME = 'Ar_id_Save0.sav'        
+                SAVE, ARs, PRs, NRs, PRsFr, NRsFr, mdi_il, mdi_ir, lbl, prepnr_sw, mdi_ir_vis, buff_sw, FILENAME = 'Ar_id_Save0.sav'        
             endif else begin
-                SAVE, ARs, PRs, NRs, mdi_il, mdi_ir, lbl, prepnr_sw, mdi_ir_vis, buff_sw, instr, FILENAME = 'Ar_id_Save0.sav'                    
+                SAVE, ARs, PRs, NRs, mdi_il, mdi_ir, lbl, prepnr_sw, mdi_ir_vis, buff_sw, FILENAME = 'Ar_id_Save0.sav'                    
             endelse
         endif
 

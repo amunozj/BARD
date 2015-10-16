@@ -330,9 +330,7 @@ END
 
 
 
-PRO amj_pnr_merge, CRD_in, mdi_i, inar, innar, Rs, ARs, pl_sw
-
-date = fxpar(CRD_in.hdr, 'DATE_OBS')
+PRO amj_pnr_merge, CRD_in, mdi_i, inar, innar, Rs, ARs, pl_sw, date
 
 ;Extracting indices of Growing region
 inpg = long(strsplit(Rs[inar].indx,/extract))
@@ -602,8 +600,10 @@ END
 
 
 ;EDITS
-PRO kpvt_ar_id, start_date=start_date, continue = continue, restoref = restoref, pnr_file = pnr_file, labl = labl, buff = buff, nobuff = nobuff, kerth1=kerth1, kerth2=kerth2, arth=arth, eros=eros, dila=dila, dislim=dislim, ovrlim=ovrlim, ardislim1=ardislim1, exp_f=exp_f, exp_d=exp_d, exp_s=exp_s, MxFlxim=MxFlxim
+PRO main_ar_id, start_date=start_date, continue = continue, restoref = restoref, pnr_file = pnr_file, labl = labl, buff = buff, nobuff = nobuff, kerth1=kerth1, kerth2=kerth2, arth=arth, eros=eros, dila=dila, dislim=dislim, ovrlim=ovrlim, ardislim1=ardislim1, exp_f=exp_f, exp_d=exp_d, exp_s=exp_s, MxFlxim=MxFlxim, instr = instr
 
+device,retain=2
+  
 ;Creating backups------------------------
 
 ;Final State
@@ -642,17 +642,26 @@ endif
 
 ;Active region detection constants
 ar_cnst={dis_lim1:4.0, dis_lim2:4.0, exp_f: 1.0,  exp_d: 4.0, exp_s: 1.0, mlth: 40.0, mxB: 180.0, MxFlxim:3.0, Imb_tol: 0.10, Imb_it: 10, lim_lon: -90.0, k_sig:15.0, npr: 5, nmgnt: 5 , vld_thr: 0.69, valid_range:[-20000.,20000.]}
-;seg_const={seg_const, ker_th:200.0, ker_th2:60.0, ar_th:60.0, qr_th:60.0, dila_size:4, eros_size:6.0, npssu: 4, mxB: 0.0, k_sig:15.0, ar_grow_sig:20., valid_range:[-20000.,20000.], deg_lim:70.0}
 
-; EDITS:
-;seg_const={seg_const, ker_th:200.0, ker_th2:100.0, ar_th:50.0, ar_th2:50.0, qr_th:60.0, dila_size:2, eros_size:6.0, npssu: 2, dis_lim1:6.0, mxB: 0.0, k_sig:15.0, ar_grow_sig:20., valid_range:[-20000.,20000.], deg_lim:70.0}
-;ORIGINAL
-;seg_const={seg_const, ker_th:500.0, ker_th2:100.0, ar_th:250.0, ar_th2:50.0, qr_th:60.0, dila_size:2, eros_size:6.0, npssu: 3, dis_lim1:6.0, mxB: 0.0, k_sig:15.0, ar_grow_sig:20., valid_range:[-20000.,20000.], deg_lim:70.0}
-;BEST MDI
-;seg_const={ker_th:500.0, ker_th2:275.0, ar_th:325.0, ar_th2:50.0, eros_size:9.0, dila_size:18.0, npssu: 3, dis_lim:3.0, ovr_lim: 0.3, qr_th:60.0, mxB: 0.0, k_sig:15.0, ar_grow_sig:20., valid_range:[-20000.,20000.], deg_lim:70.0}
+;KPVT 512
+if instr eq 1 then begin
+	seg_const={ker_th:400.0, ker_th2:200.0, ar_th:150.0, ar_th2:50.0, eros_size:10.0, dila_size:20.0, npssu:2, dis_lim:2.0, ovr_lim: 0.2, qr_th:60.0, mxB: 0.0, k_sig:15.0, ar_grow_sig:20., valid_range:[-20000.,20000.], deg_lim:70.0}
+endif
 
-;KPVT
-seg_const={ker_th:400.0, ker_th2:200.0, ar_th:150.0, ar_th2:50.0, eros_size:10.0, dila_size:20.0, npssu:2, dis_lim:2.0, ovr_lim: 0.2, qr_th:60.0, mxB: 0.0, k_sig:15.0, ar_grow_sig:20., valid_range:[-20000.,20000.], deg_lim:70.0}
+;KPVT SMPG
+if instr eq 2 then begin
+	seg_const={ker_th:400.0, ker_th2:200.0, ar_th:150.0, ar_th2:50.0, eros_size:10.0, dila_size:20.0, npssu:2, dis_lim:2.0, ovr_lim: 0.2, qr_th:60.0, mxB: 0.0, k_sig:15.0, ar_grow_sig:20., valid_range:[-20000.,20000.], deg_lim:70.0}
+endif
+
+;MDI
+if instr eq 3 then begin
+	seg_const={ker_th:500.0, ker_th2:275.0, ar_th:325.0, ar_th2:50.0, eros_size:9.0, dila_size:18.0, npssu: 3, dis_lim:3.0, ovr_lim: 0.3, qr_th:60.0, mxB: 0.0, k_sig:15.0, ar_grow_sig:20., valid_range:[-20000.,20000.], deg_lim:70.0}
+endif
+
+;HMI
+if instr eq 4 then begin
+	seg_const={ker_th:250.0, ker_th2:200.0, ar_th:150.0, ar_th2:50.0, eros_size:20.0, dila_size:40.0, npssu:1, dis_lim:2.0, ovr_lim: 0.2, qr_th:60.0, mxB: 0.0, k_sig:15.0, ar_grow_sig:20., valid_range:[-20000.,20000.], deg_lim:70.0}
+endif
 
 ;EDITS
 if ( n_elements( kerth1 ) ne 0 ) then seg_const.ker_th = kerth1
@@ -668,10 +677,15 @@ if ( n_elements( exp_d ) ne 0 ) then ar_cnst.exp_d = exp_d
 if ( n_elements( exp_s ) ne 0 ) then ar_cnst.exp_s = exp_s
 if ( n_elements(MxFlxim) ne 0 ) then ar_cnst.MxFlxim = MxFlxim
 
-
-
 IF( keyword_set( start_date ) ) THEN date0 = start_date $
-ELSE date0 = '1997-01-01'
+ELSE begin
+	if instr eq 1 then date0 = '1981-06-08';	KPVT 512
+	if instr eq 2 then date0 = '1992-04-21';	KPVT SPMG
+	if instr eq 3 then date0 = '1997-01-01';	MDI
+	if instr eq 4 then date0 = '2010-11-21';	HMI
+endelse
+
+
 
 
 ;Buffer definition
@@ -699,8 +713,11 @@ min_max_sat = 0
 
 prepnr_sw = 0; Pre-detection of PNRs
 
-
-DayOff = julday(1,1,1970);  First reference day for keeping track time easily
+;First reference day for keeping track time easily
+if instr eq 1 then DayOff = julday(1,1,1970);	KPVT 512
+if instr eq 2 then DayOff = julday(1,1,1970);	KPVT SPMG
+if instr eq 3 then DayOff = julday(1,1,1993);	MDI
+if instr eq 4 then DayOff = julday(1,1,2009);	HMI
 
 
 if ( (not keyword_set( continue )) and (not keyword_set(restoref)) ) then begin
@@ -917,7 +934,7 @@ REPEAT BEGIN
       caldat, mdi_ir+DayOff, Month, Day, Year
       dater = strtrim(string(Year),2)+'-'+strtrim(string(Month,format='(I02)'),2)+'-'+strtrim(string(Day,format='(I02)'),2)
       print, dater
-      mgr = amj_kpvt_archive( dater, hdrr )
+      mgr = amj_file_read( dater, hdrr, instr )
           
       sr = size(mgr)
     
@@ -948,7 +965,7 @@ REPEAT BEGIN
       caldat, mdi_il+DayOff, Month, Day, Year
       datel = strtrim(string(Year),2)+'-'+strtrim(string(Month,format='(I02)'),2)+'-'+strtrim(string(Day,format='(I02)'),2)
       print, datel
-      mgl = amj_kpvt_archive( datel, hdrl )
+      mgl = amj_file_read( datel, hdrl, instr )
     
       sl = size(mgl)
     
@@ -970,8 +987,9 @@ REPEAT BEGIN
 
       ;Performing detection of possitive and negative regions
       if ( (detpn_sw eq 1) ) then begin
-        amj_kpvt_coord, mgr.img, hdrr, CRD, seg_const=seg_const                       
-        amj_pnr_dt, CRD, mdi_ir, PRs, NRs, seg_const=seg_const;,/not_merge, /detdisp
+        amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const;, /disp		
+        amj_pnr_dt, CRD, mdi_ir, PRs, NRs, instr, seg_const=seg_const;, /disp,/not_merge, /detdisp
+
         detpn_sw = 0   
       endif
       
@@ -979,19 +997,19 @@ REPEAT BEGIN
       tmp_in = where((PRs.mdi_i eq mdi_ir) and (PRs.lnk_sw eq 0), n_prs)
       tmp_in = where((NRs.mdi_i eq mdi_ir) and (NRs.lnk_sw eq 0), n_nrs)
 ;      tmp_in = where((ARs.mdi_i eq mdi_ir), n_ars)     
-    ;  detar_sw = 0;
+;      detar_sw = 0;
     
 ;      if ( (detar_sw eq 1) and ( n_prs gt 0 ) and ( n_nrs gt 0 ) and ( n_ars eq 0 ) ) then begin
       if ( (detar_sw eq 1) and ( n_prs gt 0 ) and ( n_nrs gt 0 ) ) then begin
-        amj_kpvt_coord, mgr.img, hdrr, CRD, seg_const=seg_const                       
-        amj_ar_dt_track_dr, CRD, mdi_ir, lbl, PRs, NRs, ARs, ar_cnst=ar_cnst, seg_const=seg_const;,/display;, /bck_trck;, /display
+        amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const                       
+        amj_ar_dt_track_dr, CRD, mdi_ir, lbl, PRs, NRs, ARs, mgr.date, ar_cnst=ar_cnst, seg_const=seg_const;,/display;, /bck_trck;, /display
         detar_sw = 0
         mdi_ir_vis = [mdi_ir_vis,mdi_ir]
       endif
       
       ;Definition of window parameters and window initialization
 ;      pls = 800;
-      pls = 400;
+      pls = 500;
       pad = 40;
       plxy = 100;
       plxx = 200;
@@ -1004,33 +1022,33 @@ REPEAT BEGIN
       ;Exploration Window
       ;AR overlay
       if (ds_swl eq 1) then begin
-        amj_mgplot, mgl.img, mdi_il, mdi_rf=mdi_ir, hdr_i=hdrl, hdr_f=hdrr, seg_const = seg_const, /tag, ARs = ARs, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [2.0*pad, pad+plxy, pls+2.0*pad, pls+pad+plxy], title = datel, xrange = [min(mgl.x), max(mgl.x)] , yrange = [min(mgl.y), max(mgl.y)]    
+        amj_mgplot, mgl.img, mdi_il, instr, mdi_rf=mdi_ir, hdr_i=hdrl, hdr_f=hdrr, seg_const = seg_const, /tag, ARs = ARs, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [2.0*pad, pad+plxy, pls+2.0*pad, pls+pad+plxy], title = datel, xrange = [min(mgl.x), max(mgl.x)] , yrange = [min(mgl.y), max(mgl.y)]    
       endif
       ;Mixed overlay
       if (ds_swl eq 2) then begin
-        amj_mgplot, mgl.img, mdi_il, mdi_rf=mdi_ir, hdr_i=hdrl, hdr_f=hdrr, seg_const = seg_const, /tag, PRs = PRs, NRs = NRs, ARs = ARs, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [2.0*pad, pad+plxy, pls+2.0*pad, pls+pad+plxy], title = datel, xrange = [min(mgl.x), max(mgl.x)] , yrange = [min(mgl.y), max(mgl.y)]    
+        amj_mgplot, mgl.img, mdi_il, instr, mdi_rf=mdi_ir, hdr_i=hdrl, hdr_f=hdrr, seg_const = seg_const, /tag, PRs = PRs, NRs = NRs, ARs = ARs, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [2.0*pad, pad+plxy, pls+2.0*pad, pls+pad+plxy], title = datel, xrange = [min(mgl.x), max(mgl.x)] , yrange = [min(mgl.y), max(mgl.y)]    
       endif
       ;PNR overlay
       if (ds_swl eq 3) then begin
-        amj_mgplot, mgl.img, mdi_il, mdi_rf=mdi_ir, hdr_i=hdrl, hdr_f=hdrr, seg_const = seg_const, /tag, PRs = PRs, NRs = NRs, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [2.0*pad, pad+plxy, pls+2.0*pad, pls+pad+plxy], title = datel, xrange = [min(mgl.x), max(mgl.x)] , yrange = [min(mgl.y), max(mgl.y)]        
+        amj_mgplot, mgl.img, mdi_il, instr, mdi_rf=mdi_ir, hdr_i=hdrl, hdr_f=hdrr, seg_const = seg_const, /tag, PRs = PRs, NRs = NRs, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [2.0*pad, pad+plxy, pls+2.0*pad, pls+pad+plxy], title = datel, xrange = [min(mgl.x), max(mgl.x)] , yrange = [min(mgl.y), max(mgl.y)]        
       endif
       ;No overlay
       if (ds_swl eq 4) then begin
-        amj_mgplot, mgl.img, mdi_il, mdi_rf=mdi_ir, hdr_i=hdrl, hdr_f=hdrr, seg_const = seg_const, /tag, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [2.0*pad, pad+plxy, pls+2.0*pad, pls+pad+plxy], title = datel, xrange = [min(mgl.x), max(mgl.x)] , yrange = [min(mgl.y), max(mgl.y)]        
+        amj_mgplot, mgl.img, mdi_il, instr, mdi_rf=mdi_ir, hdr_i=hdrl, hdr_f=hdrr, seg_const = seg_const, /tag, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [2.0*pad, pad+plxy, pls+2.0*pad, pls+pad+plxy], title = datel, xrange = [min(mgl.x), max(mgl.x)] , yrange = [min(mgl.y), max(mgl.y)]        
       endif
        
       ;Detection Window
       ;Mixed Overlay
       if (ds_swr eq 1) then begin
-        amj_mgplot, mgr.img, mdi_ir, mdi_rf=mdi_il, hdr_i=hdrr, hdr_f=hdrl, seg_const = seg_const, /tag, PRs = PRs, NRs = NRs, ARs = ARs, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [pls+4.0*pad, pad+plxy, 2.0*pls+4.0*pad, pls+pad+plxy], title = dater, xrange = [min(mgr.x), max(mgr.x)] , yrange = [min(mgr.y), max(mgr.y)]    
+        amj_mgplot, mgr.img, mdi_ir, instr, mdi_rf=mdi_il, hdr_i=hdrr, hdr_f=hdrl, seg_const = seg_const, /tag, PRs = PRs, NRs = NRs, ARs = ARs, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [pls+4.0*pad, pad+plxy, 2.0*pls+4.0*pad, pls+pad+plxy], title = dater, xrange = [min(mgr.x), max(mgr.x)] , yrange = [min(mgr.y), max(mgr.y)]    
       endif
     ;  ;AR overlay
     ;  if (ds_swr eq 2) then begin
-    ;    amj_mgplot, mgr.img, mdi_ir, ARs = ARs, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [pls+4.0*pad, pad+plxy, 2.0*pls+4.0*pad, pls+pad+plxy], title = dater, xrange = [min(mgr.x), max(mgr.x)] , yrange = [min(mgr.y), max(mgr.y)]    
+    ;    amj_mgplot, mgr.img, mdi_ir, instr, ARs = ARs, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [pls+4.0*pad, pad+plxy, 2.0*pls+4.0*pad, pls+pad+plxy], title = dater, xrange = [min(mgr.x), max(mgr.x)] , yrange = [min(mgr.y), max(mgr.y)]    
     ;  endif
       ;No overlay
       if (ds_swr eq 2) then begin
-        amj_mgplot, mgr.img, mdi_ir, mdi_rf=mdi_il, hdr_i=hdrr, hdr_f=hdrl, seg_const = seg_const, /tag, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [pls+4.0*pad, pad+plxy, 2.0*pls+4.0*pad, pls+pad+plxy], title = dater, xrange = [min(mgr.x), max(mgr.x)] , yrange = [min(mgr.y), max(mgr.y)]    
+        amj_mgplot, mgr.img, mdi_ir, instr, mdi_rf=mdi_il, hdr_i=hdrr, hdr_f=hdrl, seg_const = seg_const, /tag, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [pls+4.0*pad, pad+plxy, 2.0*pls+4.0*pad, pls+pad+plxy], title = dater, xrange = [min(mgr.x), max(mgr.x)] , yrange = [min(mgr.y), max(mgr.y)]    
       endif
       
   endif
@@ -1040,9 +1058,9 @@ REPEAT BEGIN
   REPEAT BEGIN 
     redraw = 0
     print, 'Please make a choice'
-;     tmpcs = 13
-;     CASE (tmpcs) of ;button_choice(pls, pad, plxy, plxx) OF
-    CASE button_choice(pls, pad, plxy, plxx) OF
+     tmpcs = 13
+     CASE (tmpcs) of ;button_choice(pls, pad, plxy, plxx) OF
+;   CASE button_choice(pls, pad, plxy, plxx) OF
       0: BEGIN
             print, 'Please click inside one of the buttons'
           
@@ -1177,9 +1195,9 @@ REPEAT BEGIN
                       inn = r1_in
                     endelse
                     
-                    ;Adding region to list and updating PNR indices
-                    amj_kpvt_coord, mgr.img, hdrr, CRD, seg_const=seg_const                                           
-                    amj_ar_manual, CRD, mdi_ir, inp, inn, lbl, PRs, NRs, ARs, ar_cnst=ar_cnst, seg_const=seg_const
+                    ;Adding region to list, tracking, and updating PNR indices
+                    amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const                                           
+                    amj_ar_manual, CRD, mdi_ir, inp, inn, lbl, PRs, NRs, ARs, mgr.date, ar_cnst=ar_cnst, seg_const=seg_const
                     redraw = 1    
                     und_sw = 1                    
                   endif else begin
@@ -1237,8 +1255,8 @@ REPEAT BEGIN
                     endelse
                     
                     ;Adding region to list, tracking, and updating PNR indices
-                    amj_kpvt_coord, mgr.img, hdrr, CRD, seg_const=seg_const                                           
-                    amj_ar_manual, CRD, mdi_ir, inp, inn, lbl, PRs, NRs, ARs, ar_cnst=ar_cnst, seg_const=seg_const, /track
+                    amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const                                           
+                    amj_ar_manual, CRD, mdi_ir, inp, inn, lbl, PRs, NRs, ARs, mgr.date, ar_cnst=ar_cnst, seg_const=seg_const, /track
                     redraw = 1    
                     und_sw = 1                    
                   endif else begin
@@ -1340,8 +1358,8 @@ REPEAT BEGIN
                       endelse
                       
                       ;Adding region to list and updating PNR indices
-                      amj_kpvt_coord, mgr.img, hdrr, CRD, seg_const=seg_const                                           
-                      amj_pnr_merge, CRD, mdi_ir, inar, innar, PRs, ARs, pl_sw
+                      amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const                                           
+                      amj_pnr_merge, CRD, mdi_ir, inar, innar, PRs, ARs, pl_sw, date
 
 
                       redraw = 1    
@@ -1370,8 +1388,8 @@ REPEAT BEGIN
                       endelse
                       
                       ;Adding region to list and updating PNR indices
-                      amj_kpvt_coord, mgr.img, hdrr, CRD, seg_const=seg_const                                           
-                      amj_pnr_merge, CRD, mdi_ir, inar, innar, NRs, ARs, pl_sw
+                      amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const                                           
+                      amj_pnr_merge, CRD, mdi_ir, inar, innar, NRs, ARs, pl_sw, date
 
 
                       redraw = 1    
@@ -1470,7 +1488,7 @@ REPEAT BEGIN
                   tmp_seg_const.ovr_lim = 0.7
           			  ;tmp_seg_const.dila_size=5
           			  
-                  amj_kpvt_coord, tmp_im, hdrr, CRD              
+                  amj_coord, tmp_im, hdrr, CRD              
                   amj_pnr_dt, CRD, mdi_ir, tmp_PRs, tmp_NRs, seg_const=tmp_seg_const, pnr_lbl = -999;,/not_merge;, /detdisp
 
               endif
@@ -1564,10 +1582,11 @@ REPEAT BEGIN
      13: BEGIN
             print, 'Print Screen'
 ;            tmp_fl = 'prnt_' + strtrim(string(mdi_ir,'(I)'),2) + '_' + strtrim(string(seg_const.ker_th,'(I)'),2) + '_' + strtrim(string(seg_const.ker_th2,'(I)'),2) + '_' + strtrim(string(seg_const.ar_th,'(I)'),2) + '_' + strtrim(string(seg_const.eros_size,'(I)'),2) + '_' + strtrim(string(seg_const.dila_size,'(I)'),2) + '_' + strtrim(string(seg_const.dis_lim,'(I)'),2) + '_' + strtrim(string(seg_const.ovr_lim,'(F3.1)'),2) + '.png'
-            tmp_fl = 'prnt_density_test-75_' + strtrim(string(mdi_ir,'(I)'),2) + '_' + strtrim(string(seg_const.ker_th,'(I)'),2) + '_' + strtrim(string(seg_const.eros_size,'(I)'),2) + '_' + strtrim(string(seg_const.dila_size,'(I)'),2) + '_'+ strtrim(string(seg_const.ker_th2,'(I)'),2) + '_' + strtrim(string(seg_const.ar_th,'(I)'),2) + '_'  + strtrim(string(seg_const.dis_lim,'(I)'),2) + '_' + strtrim(string(seg_const.ovr_lim,'(F3.1)'),2) + '.png'
+            tmp_fl = 'prnt_' + strtrim(string(mdi_ir,'(I)'),2) + '_' + strtrim(string(seg_const.ker_th,'(I)'),2) + '_' + strtrim(string(seg_const.eros_size,'(I)'),2) + '_' + strtrim(string(seg_const.dila_size,'(I)'),2) + '_'+ strtrim(string(seg_const.ker_th2,'(I)'),2) + '_' + strtrim(string(seg_const.ar_th,'(I)'),2) + '_'  + strtrim(string(seg_const.dis_lim,'(I)'),2) + '_' + strtrim(string(seg_const.ovr_lim,'(F3.1)'),2) + '.png'
 ;            tmp_fl = 'prnt_AR_not_merge' + strtrim(string(mdi_ir,'(I)'),2) + '_' + strtrim(string(ar_cnst.dis_lim1,'(F4.1)'),2) + '_' + strtrim(string(ar_cnst.MxFlxim,'(F4.1)'),2) + '_' + strtrim(string(ar_cnst.exp_f,'(F4.1)'),2) + '_' + strtrim(string(ar_cnst.exp_d,'(F4.1)'),2) + '_'+ strtrim(string(ar_cnst.exp_s,'(F4.1)'),2) + '_' + strtrim(string(seg_const.ar_th,'(I)'),2) + '.png'
             write_png, tmp_fl, TVRD(/true)
-;            stat = 0
+            stat = 0
+            sv_sw = 0
          END	  
      14: BEGIN
             print, 'Post-Detection Merge'
@@ -1592,7 +1611,7 @@ REPEAT BEGIN
       			date = ''
       			read, 'Enter date (e.g. 2001-08-31): ', date
       			
-      			mg_tmp = amj_kpvt_archive( date, hdrr )
+      			mg_tmp = amj_file_read( date, hdrr, instr)
             mdi_tmp  = julday(strmid(date,5,2),strmid(date,8,2),strmid(date,0,4))-DayOff
       			
       			tmpsize = size(mg_tmp)
@@ -1628,7 +1647,7 @@ REPEAT BEGIN
             date = ''
             read, 'Enter date (e.g. 2001-08-31): ', date
 
-            mg_tmp = amj_kpvt_archive( date, hdrr )
+            mg_tmp = amj_file_read( date, hdrr, instr)
             mdi_tmp  = julday(strmid(date,5,2),strmid(date,8,2),strmid(date,0,4))-DayOff
             
             tmpsize = size(mg_tmp)
@@ -1847,9 +1866,9 @@ REPEAT BEGIN
         
         ;Saving file
         if (n_elements(PRsFr) gt 0) or (n_elements(NRsFr) gt 0) then begin
-            SAVE, ARs, PRs, NRs, PRsFr, NRsFr, mdi_il, mdi_ir, lbl, prepnr_sw, mdi_ir_vis, buff_sw, FILENAME = 'Ar_id_Save0.sav'          
+            SAVE, ARs, PRs, NRs, PRsFr, NRsFr, mdi_il, mdi_ir, lbl, prepnr_sw, mdi_ir_vis, buff_sw, instr, FILENAME = 'Ar_id_Save0.sav'          
         endif else begin  
-            SAVE, ARs, PRs, NRs, mdi_il, mdi_ir, lbl, prepnr_sw, mdi_ir_vis, buff_sw, FILENAME = 'Ar_id_Save0.sav'
+            SAVE, ARs, PRs, NRs, mdi_il, mdi_ir, lbl, prepnr_sw, mdi_ir_vis, buff_sw, instr, FILENAME = 'Ar_id_Save0.sav'
         endelse
 
         PRs = tmpPRsb
@@ -1939,9 +1958,9 @@ if (buff_sw eq 1) then begin
   
   ;Saving file
   if (n_elements(PRsFr) gt 0) or (n_elements(NRsFr) gt 0) then begin
-      SAVE, ARs, PRs, NRs, PRsFr, NRsFr, mdi_il, mdi_ir, lbl, prepnr_sw, mdi_ir_vis, buff_sw, FILENAME = 'Ar_id_Save0.sav'
+      SAVE, ARs, PRs, NRs, PRsFr, NRsFr, mdi_il, mdi_ir, lbl, prepnr_sw, mdi_ir_vis, buff_sw, instr, FILENAME = 'Ar_id_Save0.sav'
   endif else begin
-      SAVE, ARs, PRs, NRs, mdi_il, mdi_ir, lbl, prepnr_sw, mdi_ir_vis, buff_sw, FILENAME = 'Ar_id_Save0.sav'
+      SAVE, ARs, PRs, NRs, mdi_il, mdi_ir, lbl, prepnr_sw, mdi_ir_vis, buff_sw, instr, FILENAME = 'Ar_id_Save0.sav'
   endelse
 
     
