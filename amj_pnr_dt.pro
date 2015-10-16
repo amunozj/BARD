@@ -162,7 +162,7 @@ print, 'Detecting positive and negative regions'
 
 ;Decrement for lowering the detection threshold
 d_thrs = 0;
-if (seg_const.npssu ge 1) then begin
+if (seg_const.npssu gt 1) then begin
    d_thrs = (seg_const.ker_th - seg_const.ker_th2)/(seg_const.npssu-1)
 endif
 

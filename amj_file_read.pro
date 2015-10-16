@@ -74,9 +74,12 @@ endif
 
 ;HMI
 if instr eq 4 then begin
+	;fn0 = '/Users/santiagovargas/HMI_Magnetograms/'
 	fn0 = '/disk/data/munoz/HMI/'
 	fn  = fn0 + '*' + strmid(datestr,0,4) + strmid(datestr,5,2) + strmid(datestr,8,2) + '*.fits'
 	dn  = file_search( fn, count=cf )
+
+
 endif
 
 	
@@ -94,8 +97,14 @@ IF( cf gt 0 ) THEN begin
 		radius = hdr.RSUN_OBS;  use header for radius
 		
 		x0 = hdr.CRPIX1
-		y0 = hdr.CRPIX2	
-			
+        y0 = hdr.CRPIX2
+
+        P0 = hdr.CROTA2
+
+
+		if ( (P0 ne 0.0) ) then begin
+			m =  ROT(m, P0, 1.0, x0, y0, MISSING = !values.f_nan, /cubic)
+		endif                
 			
 	;The rest uses string arrays
 	endif else begin
