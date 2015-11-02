@@ -1196,6 +1196,7 @@ REPEAT BEGIN
                     endelse
                     
                     ;Adding region to list, tracking, and updating PNR indices
+					print, 'Creating'
                     amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const                                           
                     amj_ar_manual, CRD, mdi_ir, inp, inn, lbl, PRs, NRs, ARs, mgr.date, ar_cnst=ar_cnst, seg_const=seg_const
                     redraw = 1    
@@ -1255,6 +1256,7 @@ REPEAT BEGIN
                     endelse
                     
                     ;Adding region to list, tracking, and updating PNR indices
+					print, 'Creating and Tracking'
                     amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const                                           
                     amj_ar_manual, CRD, mdi_ir, inp, inn, lbl, PRs, NRs, ARs, mgr.date, ar_cnst=ar_cnst, seg_const=seg_const, /track
                     redraw = 1    
@@ -1358,6 +1360,7 @@ REPEAT BEGIN
                       endelse
                       
                       ;Adding region to list and updating PNR indices
+					  print, 'Merging'
                       amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const                                           
                       amj_pnr_merge, CRD, mdi_ir, inar, innar, PRs, ARs, pl_sw, date
 
@@ -1427,7 +1430,8 @@ REPEAT BEGIN
             if (r1_in eq -2) then begin
               print, 'Cancelled. No PNR was fragmented'
             endif else begin
-              
+			
+			  print, 'Fragmenting'
               prfrg_sw = 0 ;Swiths that indicates that a prefragmented set of regions has been found
 
               ;Creating temporary PNR arrays
