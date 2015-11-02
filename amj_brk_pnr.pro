@@ -1,6 +1,9 @@
 
 ;EDITS
-PRO amj_brk_mdi_pnr, pnr_file
+PRO amj_brk_pnr, pnr_file, instr
+
+SET_PLOT, 'Z'
+thisDevice = !D.Name
  
 restore, pnr_file
 
@@ -11,17 +14,16 @@ mdi_imax = max([max(PRs[where(PRs.mdi_i ne 0)].mdi_i),max(NRs[where(NRs.mdi_i ne
 prsmdi = PRs.mdi_i
 nrsmdi = NRs.mdi_i
 
-nopnrs = 0;
-yespnrs = 0;
+;nopnrs = 0;
+;yespnrs = 0;
 
-bndrsa = 0;
-bndrsq = 0;
-whl_sw = 0
+bndrsa = 0    ;Boundaries of active periods
+bndrsq = 0    ;Boundaries of quiet periods
 
-actv_sw = 0;
+actv_sw = 0;  ;Switch that keeps track of whether the current period is active or quiet
 
-n_qd = 0;
-ndsqtlim = 6
+n_qd = 0;     ;Number of days of quiet period
+ndsqtlim = 7  ;Minimum number of quiet days necessary to end a quiet period
 
 
 for i = mdi_imin, mdi_imax do begin
@@ -76,9 +78,16 @@ for i = mdi_imin, mdi_imax do begin
   
 endfor
 
+;If we reach the end of the interval without finding a quiet period, end the current active period
+if (actv_sw eq 1) then begin
+  bndrsq = [bndrsq, i]
+  actv_sw = 0
+endif
+
+;stop
 
 bndrsa = bndrsa[1:n_elements(bndrsa)-1]
-bndrsa = bndrsa[0:n_elements(bndrsa)-2]
+;bndrsa = bndrsa[0:n_elements(bndrsa)-2]
 
 bndrsq = bndrsq[1:n_elements(bndrsq)-1]
 
@@ -99,10 +108,10 @@ lthactv = bndrsq-bndrsa
 lthaqt = bndrsa[1:n_elements(bndrsa)-1] - bndrsq[0:n_elements(bndrsq)-2]
 
 mdi_icr = mdi_imin  ; variable storing the current day of the mission
-max_dys = 350
+max_dys = 5000       ; Maximum length of each active period
 
-mrg_sw = 1
-dyssep = ndsqtlim
+mrg_sw = 1          ;Switch that determines when the process of mergin is over
+dyssep = ndsqtlim   ;Minimum number of quiet days necessary to end a quiet period
 dyssepmx = 10
 
 while (mrg_sw eq 1) do begin
@@ -114,7 +123,12 @@ while (mrg_sw eq 1) do begin
       
       if ( (lthactv[tmp_in[0]]+lthaqt[tmp_in[0]]+lthactv[tmp_in[0]+1]) le max_dys) then begin 
         bndrsa = [bndrsa[0:tmp_in[0]], bndrsa[tmp_in[0]+2:(n_elements(bndrsa)-1)]]
-        bndrsq = [bndrsq[0:(tmp_in[0]-1)], bndrsq[tmp_in[0]+1:(n_elements(bndrsq)-1)]]
+        
+        if tmp_in[0] eq 0 then begin
+            bndrsq = [bndrsq[tmp_in[0]+1:(n_elements(bndrsq)-1)]]
+        endif else begin  
+            bndrsq = [bndrsq[0:(tmp_in[0]-1)], bndrsq[tmp_in[0]+1:(n_elements(bndrsq)-1)]]
+        endelse
       
         lthactv = bndrsq-bndrsa
         lthaqt = bndrsa[1:n_elements(bndrsa)-1] - bndrsq[0:n_elements(bndrsq)-2]
@@ -162,6 +176,20 @@ stop
 tmpPRs = PRs
 tmpNRs = NRs
 
+szPfr = size(PRsFr)
+szNfr = size(NRsFr)
+
+if (szPfr[0] gt 0) or (szNfr[0] gt 0) then begin
+	tmpPRsFr = PRsFr
+	tmpNRsFr = NRsFr
+endif
+
+;First reference day for keeping track time easily
+if instr eq 1 then DayOff = julday(1,1,1970);	KPVT 512
+if instr eq 2 then DayOff = julday(1,1,1970);	KPVT SPMG
+if instr eq 3 then DayOff = julday(1,1,1993);	MDI
+if instr eq 4 then DayOff = julday(1,1,2009);	HMI
+
 
 tmp_in = where(lthaqt eq 7);ndsqtlim)
 
@@ -172,16 +200,29 @@ for i = 0, n_elements(bndrsa)-1 do begin
   mdi_i1 = bndrsa[i]
   mdi_i2 = bndrsq[i]
   
-  start_date = mdi_datestr( string( mdi_i1 ), /inverse )
-  end_date = mdi_datestr( string( mdi_i2 ), /inverse )
+  caldat, mdi_i1+DayOff, Month, Day, Year
+  start_date = strtrim(string(Year),2)+'-'+strtrim(string(Month,format='(I02)'),2)+'-'+strtrim(string(Day,format='(I02)'),2)
+
+  caldat, mdi_i2+DayOff, Month, Day, Year
+  end_date = strtrim(string(Year),2)+'-'+strtrim(string(Month,format='(I02)'),2)+'-'+strtrim(string(Day,format='(I02)'),2)
 
   print, start_date + ' to ' + end_date
 
   PRs = tmpPRs[where( (prsmdi ge mdi_i1) and (prsmdi le mdi_i2) )]
   NRs = tmpNRs[where( (nrsmdi ge mdi_i1) and (nrsmdi le mdi_i2) )]
 
-  SAVE, PRs, NRs, seg_const_lg, FILENAME = 'PNRs_' + start_date + '_to_' + end_date + '.sav'  
+  if (szPfr[0] gt 0) or (szNfr[0] gt 0) then begin
+
+	PRsFr = tmpPRsFr[where( (tmpPRsFr.mdi_i ge mdi_i1) and (tmpPRsFr.mdi_i le mdi_i2) )]
+	NRsFr = tmpNRsFr[where( (tmpNRsFr.mdi_i ge mdi_i1) and (tmpNRsFr.mdi_i le mdi_i2) )]
   
+	SAVE, PRs, NRs, PRsFr, NRsFr, seg_const_lg, FILENAME = 'PNRs_PreFrag_' + start_date + '_to_' + end_date + '.sav' 
+  
+  endif else begin
+  
+	SAVE, PRs, NRs, seg_const_lg, FILENAME = 'PNRs_' + start_date + '_to_' + end_date + '.sav'  
+  
+  endelse
   
 endfor
 
