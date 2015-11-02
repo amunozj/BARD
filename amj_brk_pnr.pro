@@ -1,6 +1,6 @@
 
 ;EDITS
-PRO amj_brk_pnr, pnr_file, instr
+PRO amj_brk_pnr, pnr_file, instr, max_intr = max_intr
 
 SET_PLOT, 'Z'
 thisDevice = !D.Name
@@ -170,8 +170,46 @@ print, 'Length of quiet phase'
 print, bndrsa[1:n_elements(bndrsa)-1] - bndrsq[0:n_elements(bndrsq)-2]
 
 
-stop
 
+
+if keyword_set(max_intr) then begin
+
+	for i = 0, n_elements(bndrsa)-1 do begin
+	
+		if (bndrsq[i]-bndrsa[i]) gt 2*max_intr then begin
+		
+			bndrsatmp = indgen(uint((bndrsq[i]-bndrsa[i])/max_intr)-1)*max_intr+bndrsq[i]
+			bndrsqtmp = (indgen(uint((bndrsq[i]-bndrsa[i])/max_intr)-1)+1)*max_intr+bndrsq[i]
+			
+			;Adding additional intervals
+			first = 0
+			last = n_elements(bndrsa)-1
+			CASE i OF
+				first: begin
+					bndrsa = [bndrsatmp, bndrsa[1:*]]
+					bndrsq = [bndrsqtmp, bndrsq[1:*]]
+				end
+			  
+				last: begin  
+					bndrsa = [bndrsa[first:last-1], bndrsatmp]
+					bndrsq = [bndrsq[first:last-1], bndrsqtmp]
+				end	
+					
+				ELSE: begin 
+					bndrsa = [bndrsa[first:i-1], bndrsatmp, bndrsa[i+1:last] ]
+					bndrsq = [bndrsq[first:i-1], bndrsqtmp, bndrsq[i+1:last] ]
+				end	
+					
+			ENDCASE
+		
+		endif
+	
+	
+	endfor
+
+endif
+
+stop
 
 tmpPRs = PRs
 tmpNRs = NRs
