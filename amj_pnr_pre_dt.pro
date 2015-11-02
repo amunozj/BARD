@@ -44,7 +44,8 @@ mdi_ir  = julday(strmid(start_date,5,2),strmid(start_date,8,2),strmid(start_date
 mdi_if  = julday(strmid(end_date,5,2),strmid(end_date,8,2),strmid(end_date,0,4))-DayOff
  
 ;Initializing PR array
-PRs = {rgn,  lnk_sw: 0,  mdi_i: 0, ar_lbl: 0, date: '', indx:'', flux:!values.f_nan, area:!values.f_nan, fcn_lt:!values.f_nan, fcn_ln:!values.f_nan, dcen:!values.f_nan, fcenxp: !values.f_nan, fcenyp: !values.f_nan, dcenp:!values.f_nan, dm:!values.f_nan, qm: !values.f_nan}
+PRs = {rgn,  lnk_sw: 0,  mdi_i: 0L, ar_lbl: 0, fr_lbl: 0L, date: '', indx:'', flux:!values.f_nan, area:!values.f_nan, fcn_lt:!values.f_nan, fcn_ln:!values.f_nan, dcen:!values.f_nan, fcenxp: !values.f_nan, fcenyp: !values.f_nan, dcenp:!values.f_nan, dm:!values.f_nan, qm: !values.f_nan}
+
 ;Initializing NR array
 NRs = PRs
 
@@ -94,7 +95,7 @@ while (mdi_ir le mdi_if) do begin
   if (sr[2] eq 8) then begin
       print, dater
       ;Performing detection of possitive and negative regions
-      amj_kpvt_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const                       
+      amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const	  
       amj_pnr_dt, CRD, mdi_ir, PRs, NRs, instr, seg_const=seg_const;, /detdisp
       
       if keyword_set(ars_dt) then begin
@@ -135,7 +136,7 @@ while (mdi_ir le mdi_if) do begin
                   tmp_PRs = {rgn,  lnk_sw: 0,  mdi_i: 0L, ar_lbl: 0, fr_lbl: 0L, date: '', indx:'', flux:!values.f_nan, area:!values.f_nan, fcn_lt:!values.f_nan, fcn_ln:!values.f_nan, dcen:!values.f_nan, fcenxp: !values.f_nan, fcenyp: !values.f_nan, dcenp:!values.f_nan, dm: !values.f_nan, qm: !values.f_nan}    
                   tmp_NRs = tmp_PRs
                   
-                  amj_kpvt_coord, tmp_im, hdrr, CRD, instr, seg_const=tmp_seg_const              
+                  amj_coord, tmp_im, hdrr, CRD, instr, seg_const=tmp_seg_const              
                   amj_pnr_dt, CRD, mdi_ir, tmp_PRs, tmp_NRs, instr, seg_const=tmp_seg_const, pnr_lbl = PRs[frin[i]].fr_lbl;,/not_merge;, /detdisp
                   
                   if n_elements(tmp_PRs) gt 1 then begin              
@@ -165,7 +166,7 @@ while (mdi_ir le mdi_if) do begin
                   tmp_PRs = {rgn,  lnk_sw: 0,  mdi_i: 0L, ar_lbl: 0, fr_lbl: 0L, date: '', indx:'', flux:!values.f_nan, area:!values.f_nan, fcn_lt:!values.f_nan, fcn_ln:!values.f_nan, dcen:!values.f_nan, fcenxp: !values.f_nan, fcenyp: !values.f_nan, dcenp:!values.f_nan, dm: !values.f_nan, qm: !values.f_nan}    
                   tmp_NRs = tmp_PRs
                   
-                  amj_kpvt_coord, tmp_im, hdrr, CRD, instr, seg_const=tmp_seg_const              
+                  amj_coord, tmp_im, hdrr, CRD, instr, seg_const=tmp_seg_const              
                   amj_pnr_dt, CRD, mdi_ir, tmp_PRs, tmp_NRs, instr, seg_const=tmp_seg_const, pnr_lbl = NRs[frin[i]].fr_lbl;,/not_merge;, /detdisp
                   
                   if n_elements(tmp_NRs) gt 1 then begin              
