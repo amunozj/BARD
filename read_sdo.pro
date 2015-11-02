@@ -52,6 +52,7 @@ pro read_sdo, files, index, data, xllp, yllp , nxp, nyp, _extra=_extra, $
 ;       3-jun-2013 - S.L.Freeland - Version 2.1 - little more cutout .HISTORY
 ;                                                 & missing tag protection (rogue jsoc files!)
 ;      18-apr-2014 - GLS - Made "box_message,'FOV history'" dependent on setting 'verbose' kw
+;       9-oct-2015 - S.L.Freeland - per R.A.Schwartz - explicit check for DESAT_INFO extension
 ;
 ;   NOTES - SUGGESTED you try either /NOSHELL -or- /USE_SHARED_LIB keywords
 ;           either should provide substantial speedup.

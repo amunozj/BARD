@@ -1058,9 +1058,9 @@ REPEAT BEGIN
   REPEAT BEGIN 
     redraw = 0
     print, 'Please make a choice'
-     tmpcs = 13
-     CASE (tmpcs) of ;button_choice(pls, pad, plxy, plxx) OF
-;   CASE button_choice(pls, pad, plxy, plxx) OF
+     ;ltmpcs = 13
+     ;CASE (tmpcs) of ;button_choice(pls, pad, plxy, plxx) OF
+   CASE button_choice(pls, pad, plxy, plxx) OF
       0: BEGIN
             print, 'Please click inside one of the buttons'
           
