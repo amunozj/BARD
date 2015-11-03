@@ -100,59 +100,63 @@ print, bndrsq
 print, 'Length of active phase'
 print, bndrsq-bndrsa
 
-print, 'Length of quiet phase'
-print, bndrsa[1:n_elements(bndrsa)-1] - bndrsq[0:n_elements(bndrsq)-2]
+
+if n_elements(bndrsa) gt 1 then begin
+	print, 'Length of quiet phase'
+	print, bndrsa[1:n_elements(bndrsa)-1] - bndrsq[0:n_elements(bndrsq)-2]
 
 
-lthactv = bndrsq-bndrsa
-lthaqt = bndrsa[1:n_elements(bndrsa)-1] - bndrsq[0:n_elements(bndrsq)-2]
+	lthactv = bndrsq-bndrsa
+	lthaqt = bndrsa[1:n_elements(bndrsa)-1] - bndrsq[0:n_elements(bndrsq)-2]
 
-mdi_icr = mdi_imin  ; variable storing the current day of the mission
-max_dys = 5000       ; Maximum length of each active period
+	mdi_icr = mdi_imin  ; variable storing the current day of the mission
+	max_dys = 5000       ; Maximum length of each active period
 
-mrg_sw = 1          ;Switch that determines when the process of mergin is over
-dyssep = ndsqtlim   ;Minimum number of quiet days necessary to end a quiet period
-dyssepmx = 10
+	mrg_sw = 1          ;Switch that determines when the process of mergin is over
+	dyssep = ndsqtlim   ;Minimum number of quiet days necessary to end a quiet period
+	dyssepmx = 10
 
-while (mrg_sw eq 1) do begin
-  
-  tmp_in = where(lthaqt eq dyssep, nds)
-  while (nds gt 0) do begin
-      
-    if (tmp_in[0] lt n_elements(bndrsa)-2) then begin
-      
-      if ( (lthactv[tmp_in[0]]+lthaqt[tmp_in[0]]+lthactv[tmp_in[0]+1]) le max_dys) then begin 
-        bndrsa = [bndrsa[0:tmp_in[0]], bndrsa[tmp_in[0]+2:(n_elements(bndrsa)-1)]]
-        
-        if tmp_in[0] eq 0 then begin
-            bndrsq = [bndrsq[tmp_in[0]+1:(n_elements(bndrsq)-1)]]
-        endif else begin  
-            bndrsq = [bndrsq[0:(tmp_in[0]-1)], bndrsq[tmp_in[0]+1:(n_elements(bndrsq)-1)]]
-        endelse
-      
-        lthactv = bndrsq-bndrsa
-        lthaqt = bndrsa[1:n_elements(bndrsa)-1] - bndrsq[0:n_elements(bndrsq)-2]
-        
-      endif else begin
-        lthaqt[tmp_in[0]] = 0      
-      endelse
-    
-    endif else begin
-      lthaqt[tmp_in[0]] = 0
-    endelse
+	while (mrg_sw eq 1) do begin
+	  
+	  tmp_in = where(lthaqt eq dyssep, nds)
+	  while (nds gt 0) do begin
+		  
+		if (tmp_in[0] lt n_elements(bndrsa)-2) then begin
+		  
+		  if ( (lthactv[tmp_in[0]]+lthaqt[tmp_in[0]]+lthactv[tmp_in[0]+1]) le max_dys) then begin 
+			bndrsa = [bndrsa[0:tmp_in[0]], bndrsa[tmp_in[0]+2:(n_elements(bndrsa)-1)]]
+			
+			if tmp_in[0] eq 0 then begin
+				bndrsq = [bndrsq[tmp_in[0]+1:(n_elements(bndrsq)-1)]]
+			endif else begin  
+				bndrsq = [bndrsq[0:(tmp_in[0]-1)], bndrsq[tmp_in[0]+1:(n_elements(bndrsq)-1)]]
+			endelse
+		  
+			lthactv = bndrsq-bndrsa
+			lthaqt = bndrsa[1:n_elements(bndrsa)-1] - bndrsq[0:n_elements(bndrsq)-2]
+			
+		  endif else begin
+			lthaqt[tmp_in[0]] = 0      
+		  endelse
+		
+		endif else begin
+		  lthaqt[tmp_in[0]] = 0
+		endelse
 
-    tmp_in = where(lthaqt eq dyssep, nds)    
-    
-  endwhile
+		tmp_in = where(lthaqt eq dyssep, nds)    
+		
+	  endwhile
 
-  dyssep = dyssep + 1
-  if (dyssep gt dyssepmx) then mrg_sw = 0
-   
-  
-endwhile
+	  dyssep = dyssep + 1
+	  if (dyssep gt dyssepmx) then mrg_sw = 0
+	   
+	  
+	endwhile
 
-lthactv = bndrsq-bndrsa
-lthaqt = bndrsa[1:n_elements(bndrsa)-1] - bndrsq[0:n_elements(bndrsq)-2]
+	lthactv = bndrsq-bndrsa
+	lthaqt = bndrsa[1:n_elements(bndrsa)-1] - bndrsq[0:n_elements(bndrsq)-2]
+
+endif
 
 
 print, '-------------------------------------------------------------'
@@ -166,9 +170,10 @@ print, bndrsq
 print, 'Length of active phase'
 print, bndrsq-bndrsa
 
-print, 'Length of quiet phase'
-print, bndrsa[1:n_elements(bndrsa)-1] - bndrsq[0:n_elements(bndrsq)-2]
-
+if n_elements(bndrsa) gt 1 then begin
+	print, 'Length of quiet phase'
+	print, bndrsa[1:n_elements(bndrsa)-1] - bndrsq[0:n_elements(bndrsq)-2]
+endif
 
 
 
@@ -177,30 +182,40 @@ if keyword_set(max_intr) then begin
 	for i = 0, n_elements(bndrsa)-1 do begin
 	
 		if (bndrsq[i]-bndrsa[i]) gt 2*max_intr then begin
-		
-			bndrsatmp = indgen(uint((bndrsq[i]-bndrsa[i])/max_intr)-1)*max_intr+bndrsq[i]
-			bndrsqtmp = (indgen(uint((bndrsq[i]-bndrsa[i])/max_intr)-1)+1)*max_intr+bndrsq[i]
 			
-			;Adding additional intervals
-			first = 0
-			last = n_elements(bndrsa)-1
-			CASE i OF
-				first: begin
-					bndrsa = [bndrsatmp, bndrsa[1:*]]
-					bndrsq = [bndrsqtmp, bndrsq[1:*]]
-				end
-			  
-				last: begin  
-					bndrsa = [bndrsa[first:last-1], bndrsatmp]
-					bndrsq = [bndrsq[first:last-1], bndrsqtmp]
-				end	
-					
-				ELSE: begin 
-					bndrsa = [bndrsa[first:i-1], bndrsatmp, bndrsa[i+1:last] ]
-					bndrsq = [bndrsq[first:i-1], bndrsqtmp, bndrsq[i+1:last] ]
-				end	
-					
-			ENDCASE
+			bndrsatmp = indgen(uint((bndrsq[i]-bndrsa[i])/max_intr))*max_intr+bndrsa[i]
+			bndrsqtmp = (indgen(uint((bndrsq[i]-bndrsa[i])/max_intr)-1)+1)*max_intr+bndrsa[i]
+			
+			if n_elements(bndrsa) gt 1 then begin
+			
+				;Adding additional intervals
+				first = 0
+				last = n_elements(bndrsa)-1
+				
+				CASE i OF
+					first: begin
+						bndrsa = [bndrsatmp, bndrsa[1:*]]
+						bndrsq = [bndrsqtmp, bndrsq]
+					end
+				  
+					last: begin  
+						bndrsa = [bndrsa[first:last-1], bndrsatmp]
+						bndrsq = [bndrsq[first:last-1], bndrsqtmp, bndrsq[last]]
+					end	
+						
+					ELSE: begin 
+						bndrsa = [bndrsa[first:i-1], bndrsatmp, bndrsa[i+1:last] ]
+						bndrsq = [bndrsq[first:i-1], bndrsqtmp, bndrsq[i:last] ]
+					end	
+						
+				ENDCASE
+				
+			endif else begin
+
+				bndrsa = bndrsatmp
+				bndrsq = [bndrsqtmp, bndrsq]
+			
+			endelse
 		
 		endif
 	
@@ -209,7 +224,23 @@ if keyword_set(max_intr) then begin
 
 endif
 
-stop
+print, '-------------------------------------------------------------'
+
+print, 'Starting of active phase'
+print, bndrsa
+
+print, 'End of active phase'
+print, bndrsq
+
+print, 'Length of active phase'
+print, bndrsq-bndrsa
+
+if n_elements(bndrsa) gt 1 then begin
+	print, 'Length of quiet phase'
+	print, bndrsa[1:n_elements(bndrsa)-1] - bndrsq[0:n_elements(bndrsq)-2]
+endif
+
+;stop
 
 tmpPRs = PRs
 tmpNRs = NRs
@@ -251,10 +282,10 @@ for i = 0, n_elements(bndrsa)-1 do begin
 
   if (szPfr[0] gt 0) or (szNfr[0] gt 0) then begin
 
-	PRsFr = tmpPRsFr[where( (tmpPRsFr.mdi_i ge mdi_i1) and (tmpPRsFr.mdi_i le mdi_i2) )]
-	NRsFr = tmpNRsFr[where( (tmpNRsFr.mdi_i ge mdi_i1) and (tmpNRsFr.mdi_i le mdi_i2) )]
+	PRsFr = tmpPRsFr[where( ((tmpPRsFr.mdi_i ge mdi_i1) and (tmpPRsFr.mdi_i le mdi_i2) ) or tmpPRsFr.mdi_i eq 0)]
+	NRsFr = tmpNRsFr[where( ((tmpNRsFr.mdi_i ge mdi_i1) and (tmpNRsFr.mdi_i le mdi_i2) ) or tmpNRsFr.mdi_i eq 0)]
   
-	SAVE, PRs, NRs, PRsFr, NRsFr, seg_const_lg, FILENAME = 'PNRs_PreFrag_' + start_date + '_to_' + end_date + '.sav' 
+	SAVE, PRs, NRs, PRsFr, NRsFr, seg_const_lg, FILENAME = 'PNRs_PrFr_' + start_date + '_to_' + end_date + '.sav' 
   
   endif else begin
   
