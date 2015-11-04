@@ -640,6 +640,132 @@ endif
 ;initializing run and variables
 ;-------------------------------------------------------------------------------------
 
+
+
+;Buffer definition
+buff_sw = 0; Switch indicating the run is using a buffer
+bfr_ds = 60;  maximum number of buffer days
+bfr_lm = 10; Number of days that trigger a buffer update
+sv_bfr = 10; Number of days used to save
+sv_sw = 1 ; Saving switch for the buffer run
+
+iskip = 10; number of days to skip
+
+ds_swl = 2; Switch AR overlay
+ds_swr = 1; Switch AR overlay
+
+mdi_ir_vis = 0 ; Variable that keeps track of the maximum date where AR detection has taken place
+
+
+und_sw = 1; Save undo state switch
+
+max_sat = 600;   Default image contrast
+; constants to change max_sat
+incrmnt = 100
+max_max_sat = 2000
+min_max_sat = 0
+
+prepnr_sw = 0; Pre-detection of PNRs
+
+
+
+
+if ( (not keyword_set( continue )) and (not keyword_set(restoref)) ) then begin
+
+	IF( keyword_set( start_date ) ) THEN date0 = start_date $
+	ELSE begin
+		if instr eq 1 then date0 = '1981-06-08';	KPVT 512
+		if instr eq 2 then date0 = '1992-04-21';	KPVT SPMG
+		if instr eq 3 then date0 = '1997-01-01';	MDI
+		if instr eq 4 then date0 = '2010-11-21';	HMI
+	endelse
+
+	;First reference day for keeping track time easily
+	if instr eq 1 then DayOff = julday(1,1,1970);	KPVT 512
+	if instr eq 2 then DayOff = julday(1,1,1970);	KPVT SPMG
+	if instr eq 3 then DayOff = julday(1,1,1993);	MDI
+	if instr eq 4 then DayOff = julday(1,1,2009);	HMI
+
+      
+    mdi_ir  = julday(strmid(date0,5,2),strmid(date0,8,2),strmid(date0,0,4))-DayOff
+    mdi_il = mdi_ir - 1
+    
+    
+    lbl = 0;  AR label
+    detpn_sw  = 1; %PNR Detection switch
+    detar_sw  = 1; %AR Detection switch
+        
+    ;Initializing AR array
+    ARs = {ar, mdi_i: 0L, date: '', labl: 0, clr: 0, indxp: '', indxn: '', fluxp: !values.f_nan, fluxn: !values.f_nan, areap:!values.f_nan, arean:!values.f_nan, $
+              fcn_ltp: !values.f_nan, fcn_lnp: !values.f_nan, dcenp: !values.f_nan, $ 
+              fcn_ltn: !values.f_nan, fcn_lnn: !values.f_nan, dcenn: !values.f_nan, $
+              fcenxpp: !values.f_nan, fcenypp: !values.f_nan, dcenpp: !values.f_nan, $
+              fcenxpn: !values.f_nan, fcenypn: !values.f_nan, dcenpn: !values.f_nan, $               
+              dis: !values.f_nan, tilt: !values.f_nan, lp: !values.f_nan, dm: !values.f_nan, qm: !values.f_nan}  
+    
+    ;Initializing PR array
+    PRs = {rgn,  lnk_sw: 0,  mdi_i: 0L, ar_lbl: 0, fr_lbl: 0L, date: '', indx:'', flux:!values.f_nan, area:!values.f_nan, fcn_lt:!values.f_nan, fcn_ln:!values.f_nan, dcen:!values.f_nan, fcenxp: !values.f_nan, fcenyp: !values.f_nan, dcenp:!values.f_nan, dm: !values.f_nan, qm: !values.f_nan}
+    
+    ;Initializing NR array
+    NRs = PRs
+    
+endif else begin
+  
+  detpn_sw  = 0; %PNR Detection switch
+  detar_sw  = 0; %AR Detection switch  
+  
+  
+  if keyword_set(continue) then restore, 'Ar_id_Save0.sav'
+  if keyword_set(restoref) then begin 
+    restore, restoref
+    mdi_ir = min(ARs[where(ARs.mdi_i ne 0)].mdi_i)
+    mdi_il = mdi_ir - 1    
+  endif
+  
+	IF( keyword_set( start_date ) ) THEN date0 = start_date $
+	ELSE begin
+		if instr eq 1 then date0 = '1981-06-08';	KPVT 512
+		if instr eq 2 then date0 = '1992-04-21';	KPVT SPMG
+		if instr eq 3 then date0 = '1997-01-01';	MDI
+		if instr eq 4 then date0 = '2010-11-21';	HMI
+	endelse
+
+	;First reference day for keeping track time easily
+	if instr eq 1 then DayOff = julday(1,1,1970);	KPVT 512
+	if instr eq 2 then DayOff = julday(1,1,1970);	KPVT SPMG
+	if instr eq 3 then DayOff = julday(1,1,1993);	MDI
+	if instr eq 4 then DayOff = julday(1,1,2009);	HMI
+
+   
+  ;-----------------------------------------------------------------
+  ;CLEANUP
+  
+  pr_ix = where((PRs.lnk_sw eq 0) and (PRs.ar_lbl ne 0), n_regp)
+  if (n_regp gt 0) then PRs[pr_ix].ar_lbl = 0
+
+  nr_ix = where((NRs.lnk_sw eq 0) and (NRs.ar_lbl ne 0), n_regn)
+  if (n_regn gt 0) then NRs[nr_ix].ar_lbl = 0
+  
+  
+endelse
+
+
+if keyword_set(pnr_file) then begin
+  
+  restore, pnr_file
+  mdi_ir = min([min(PRs[where(PRs.mdi_i ne 0)].mdi_i),min(NRs[where(NRs.mdi_i ne 0)].mdi_i)])
+  mdi_il = mdi_ir - 1    
+  prepnr_sw = 1
+  detpn_sw  = 0
+
+endif
+
+if (prepnr_sw eq 1) then detpn_sw  = 0
+
+if keyword_set(continue) and keyword_set(buff) then buff_sw=1
+if keyword_set(continue) and keyword_set(nobuff) then buff_sw=0
+
+
 ;Active region detection constants
 ar_cnst={dis_lim1:4.0, dis_lim2:4.0, exp_f: 1.0,  exp_d: 4.0, exp_s: 1.0, mlth: 40.0, mxB: 180.0, MxFlxim:3.0, Imb_tol: 0.10, Imb_it: 10, lim_lon: -90.0, k_sig:15.0, npr: 5, nmgnt: 5 , vld_thr: 0.69, valid_range:[-20000.,20000.]}
 
@@ -677,114 +803,6 @@ if ( n_elements( exp_d ) ne 0 ) then ar_cnst.exp_d = exp_d
 if ( n_elements( exp_s ) ne 0 ) then ar_cnst.exp_s = exp_s
 if ( n_elements(MxFlxim) ne 0 ) then ar_cnst.MxFlxim = MxFlxim
 
-IF( keyword_set( start_date ) ) THEN date0 = start_date $
-ELSE begin
-	if instr eq 1 then date0 = '1981-06-08';	KPVT 512
-	if instr eq 2 then date0 = '1992-04-21';	KPVT SPMG
-	if instr eq 3 then date0 = '1997-01-01';	MDI
-	if instr eq 4 then date0 = '2010-11-21';	HMI
-endelse
-
-
-
-
-;Buffer definition
-buff_sw = 0; Switch indicating the run is using a buffer
-bfr_ds = 60;  maximum number of buffer days
-bfr_lm = 10; Number of days that trigger a buffer update
-sv_bfr = 10; Number of days used to save
-sv_sw = 1 ; Saving switch for the buffer run
-
-iskip = 10; number of days to skip
-
-ds_swl = 2; Switch AR overlay
-ds_swr = 1; Switch AR overlay
-
-mdi_ir_vis = 0 ; Variable that keeps track of the maximum date where AR detection has taken place
-
-
-und_sw = 1; Save undo state switch
-
-max_sat = 600;   Default image contrast
-; constants to change max_sat
-incrmnt = 100
-max_max_sat = 2000
-min_max_sat = 0
-
-prepnr_sw = 0; Pre-detection of PNRs
-
-;First reference day for keeping track time easily
-if instr eq 1 then DayOff = julday(1,1,1970);	KPVT 512
-if instr eq 2 then DayOff = julday(1,1,1970);	KPVT SPMG
-if instr eq 3 then DayOff = julday(1,1,1993);	MDI
-if instr eq 4 then DayOff = julday(1,1,2009);	HMI
-
-
-if ( (not keyword_set( continue )) and (not keyword_set(restoref)) ) then begin
-      
-    mdi_ir  = julday(strmid(date0,5,2),strmid(date0,8,2),strmid(date0,0,4))-DayOff
-    mdi_il = mdi_ir - 1
-    
-    
-    lbl = 0;  AR label
-    detpn_sw  = 1; %PNR Detection switch
-    detar_sw  = 1; %AR Detection switch
-        
-    ;Initializing AR array
-    ARs = {ar, mdi_i: 0L, date: '', labl: 0, clr: 0, indxp: '', indxn: '', fluxp: !values.f_nan, fluxn: !values.f_nan, areap:!values.f_nan, arean:!values.f_nan, $
-              fcn_ltp: !values.f_nan, fcn_lnp: !values.f_nan, dcenp: !values.f_nan, $ 
-              fcn_ltn: !values.f_nan, fcn_lnn: !values.f_nan, dcenn: !values.f_nan, $
-              fcenxpp: !values.f_nan, fcenypp: !values.f_nan, dcenpp: !values.f_nan, $
-              fcenxpn: !values.f_nan, fcenypn: !values.f_nan, dcenpn: !values.f_nan, $               
-              dis: !values.f_nan, tilt: !values.f_nan, lp: !values.f_nan, dm: !values.f_nan, qm: !values.f_nan}  
-    
-    ;Initializing PR array
-    PRs = {rgn,  lnk_sw: 0,  mdi_i: 0L, ar_lbl: 0, fr_lbl: 0L, date: '', indx:'', flux:!values.f_nan, area:!values.f_nan, fcn_lt:!values.f_nan, fcn_ln:!values.f_nan, dcen:!values.f_nan, fcenxp: !values.f_nan, fcenyp: !values.f_nan, dcenp:!values.f_nan, dm: !values.f_nan, qm: !values.f_nan}
-    
-    ;Initializing NR array
-    NRs = PRs
-    
-endif else begin
-  
-  detpn_sw  = 0; %PNR Detection switch
-  detar_sw  = 0; %AR Detection switch  
-  
-  
-  if keyword_set(continue) then restore, 'Ar_id_Save0.sav'
-  if keyword_set(restoref) then begin 
-    restore, restoref
-    mdi_ir = min(ARs[where(ARs.mdi_i ne 0)].mdi_i)
-    mdi_il = mdi_ir - 1    
-  endif
-
-   
-  ;-----------------------------------------------------------------
-  ;CLEANUP
-  
-  pr_ix = where((PRs.lnk_sw eq 0) and (PRs.ar_lbl ne 0), n_regp)
-  if (n_regp gt 0) then PRs[pr_ix].ar_lbl = 0
-
-  nr_ix = where((NRs.lnk_sw eq 0) and (NRs.ar_lbl ne 0), n_regn)
-  if (n_regn gt 0) then NRs[nr_ix].ar_lbl = 0
-  
-  
-endelse
-
-
-if keyword_set(pnr_file) then begin
-  
-  restore, pnr_file
-  mdi_ir = min([min(PRs[where(PRs.mdi_i ne 0)].mdi_i),min(NRs[where(NRs.mdi_i ne 0)].mdi_i)])
-  mdi_il = mdi_ir - 1    
-  prepnr_sw = 1
-  detpn_sw  = 0
-
-endif
-
-if (prepnr_sw eq 1) then detpn_sw  = 0
-
-if keyword_set(continue) and keyword_set(buff) then buff_sw=1
-if keyword_set(continue) and keyword_set(nobuff) then buff_sw=0
 
 ;Creating buffer if run is continued
 if (buff_sw eq 1) then begin
@@ -1722,9 +1740,9 @@ REPEAT BEGIN
             spawn, '\cp -f Ar_id_Save0.sav Ar_id_Save_Bckp.sav'
                   
             if (n_elements(PRsFr) gt 0) or (n_elements(NRsFr) gt 0) then begin         
-                SAVE, ARs, PRs, NRs, PRsFr, NRsFr, mdi_il, mdi_ir, lbl, prepnr_sw, mdi_ir_vis, buff_sw, FILENAME = 'Ar_id_Save0.sav'        
+                SAVE, ARs, PRs, NRs, PRsFr, NRsFr, mdi_il, mdi_ir, lbl, prepnr_sw, mdi_ir_vis, buff_sw, instr, FILENAME = 'Ar_id_Save0.sav'        
             endif else begin
-                SAVE, ARs, PRs, NRs, mdi_il, mdi_ir, lbl, prepnr_sw, mdi_ir_vis, buff_sw, FILENAME = 'Ar_id_Save0.sav'                    
+                SAVE, ARs, PRs, NRs, mdi_il, mdi_ir, lbl, prepnr_sw, mdi_ir_vis, buff_sw, instr, FILENAME = 'Ar_id_Save0.sav'                    
             endelse
         endif
 
@@ -1959,17 +1977,15 @@ if (buff_sw eq 1) then begin
       PRsFr = PRsFr_Big
       NRsFr = NRsFr_Big
   endif  
-  
-  ;Saving file
-  if (n_elements(PRsFr) gt 0) or (n_elements(NRsFr) gt 0) then begin
-      SAVE, ARs, PRs, NRs, PRsFr, NRsFr, mdi_il, mdi_ir, lbl, prepnr_sw, mdi_ir_vis, buff_sw, instr, FILENAME = 'Ar_id_Save0.sav'
-  endif else begin
-      SAVE, ARs, PRs, NRs, mdi_il, mdi_ir, lbl, prepnr_sw, mdi_ir_vis, buff_sw, instr, FILENAME = 'Ar_id_Save0.sav'
-  endelse
-
     
 endif
 
+;Saving file
+if (n_elements(PRsFr) gt 0) or (n_elements(NRsFr) gt 0) then begin
+    SAVE, ARs, PRs, NRs, PRsFr, NRsFr, mdi_il, mdi_ir, lbl, prepnr_sw, mdi_ir_vis, buff_sw, instr, FILENAME = 'Ar_id_Save0.sav'
+endif else begin
+    SAVE, ARs, PRs, NRs, mdi_il, mdi_ir, lbl, prepnr_sw, mdi_ir_vis, buff_sw, instr, FILENAME = 'Ar_id_Save0.sav'
+endelse
 
 
 
