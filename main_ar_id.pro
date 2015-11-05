@@ -1,3 +1,5 @@
+;hello 2
+
 
 FUNCTION button_choice, pls, pad, plxy, plxx
 
@@ -5,7 +7,7 @@ ftsz = 14
 
 ;Defining control (right) buttons
 ;labs = ['RE-DETECT', 'RE-LABEL', 'AGGREGATE', 'CREATE', 'DELETE', 'QUIT' ]
-labs = ['MERGE POST-DET','PRINT SCREEN','CONTRAST -','CONTRAST +','SYNCHRONIZE','RE-DETECT', 'FRAGMENT', 'MERGE', 'RE-LABEL', 'CREATE/TRACK', 'CREATE', 'DELETE ALL', 'DELETE ONE', 'QUIT' ]
+labs = ['LON-GUIDE','PRINT SCREEN','CONTRAST -','CONTRAST +','SYNCHRONIZE','RE-DETECT', 'FRAGMENT', 'MERGE', 'RE-LABEL', 'CREATE/TRACK', 'CREATE', 'DELETE ALL', 'DELETE ONE', 'QUIT' ]
 
 nl = n_elements( labs )
 
@@ -224,6 +226,56 @@ return
 END
 
 ;----------------------------------------------------------------------------------------------------------
+
+
+;----------------------------------------------------------------------------------------------------------
+
+
+PRO amj_pick_long, mdi_ir, mdi_il, ARs, refx, refy, refm, pls, pad, plxy, plxx, d_zoom
+
+print, 'Left click once on Longitude  ||  Rigth Click to cancel'
+scc_sw = 0 ;Switch to indicate success
+
+while ( (scc_sw eq 0) and ( !mouse.button ne 4 )) do begin
+  
+	cursor, u, v, 3, /device
+
+	;Check Window  
+	if (u le pls+3.0*pad) then begin
+		pos = [2.0*pad, pad+plxy]
+		refm = -1
+	endif else begin
+		pos = [pls+4.0*pad, pad+plxy]
+		refm = 1
+	end
+  
+    
+	tARs = ARs[arin]
+
+	;Positions of regions
+	xp = tARs.fcenxpp*d_zoom + pos[0]
+	yp = tARs.fcenypp*d_zoom + pos[1]
+
+	xn = tARs.fcenxpn*d_zoom + pos[0]
+	yn = tARs.fcenypn*d_zoom + pos[1]
+
+	;Find positions
+	
+	refx = u-pos[0]
+	refy = v-pos[1]
+
+	scc_sw = 1
+  
+endwhile
+
+if (!mouse.button eq 4) then inx = -2
+                
+return
+END
+
+;----------------------------------------------------------------------------------------------------------
+
+
 
 
 
@@ -640,7 +692,10 @@ endif
 ;initializing run and variables
 ;-------------------------------------------------------------------------------------
 
-
+;Reference longitude and latitude
+refx = !values.f_nan
+refy = !values.f_nan
+refm = !values.f_nan
 
 ;Buffer definition
 buff_sw = 0; Switch indicating the run is using a buffer
@@ -767,7 +822,7 @@ if keyword_set(continue) and keyword_set(nobuff) then buff_sw=0
 
 
 ;Active region detection constants
-ar_cnst={dis_lim1:4.0, dis_lim2:4.0, exp_f: 1.0,  exp_d: 4.0, exp_s: 1.0, mlth: 40.0, mxB: 180.0, MxFlxim:3.0, Imb_tol: 0.10, Imb_it: 10, lim_lon: -90.0, k_sig:15.0, npr: 5, nmgnt: 5 , vld_thr: 0.69, valid_range:[-20000.,20000.]}
+ar_cnst={dis_lim1:5.0, dis_lim2:4.0, exp_f: 1.0,  exp_d: 4.0, exp_s: 1.0, mlth: 40.0, mxB: 180.0, MxFlxim:3.0, Imb_tol: 0.10, Imb_it: 10, lim_lon: -90.0, k_sig:15.0, npr: 5, nmgnt: 5 , vld_thr: 0.69, valid_range:[-20000.,20000.]}
 
 ;KPVT 512
 if instr eq 1 then begin
@@ -1068,7 +1123,11 @@ REPEAT BEGIN
       if (ds_swr eq 2) then begin
         amj_mgplot, mgr.img, mdi_ir, instr, mdi_rf=mdi_il, hdr_i=hdrr, hdr_f=hdrl, seg_const = seg_const, /tag, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [pls+4.0*pad, pad+plxy, 2.0*pls+4.0*pad, pls+pad+plxy], title = dater, xrange = [min(mgr.x), max(mgr.x)] , yrange = [min(mgr.y), max(mgr.y)]    
       endif
-      
+      ;Mixed Overlay with reference
+      if (ds_swr eq 3) then begin
+        amj_mgplot, mgr.img, mdi_ir, instr, mdi_rf=mdi_il, hdr_i=hdrr, hdr_f=hdrl, refx = refx, refy = refy, seg_const = seg_const, /tag, PRs = PRs, NRs = NRs, ARs = ARs, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [pls+4.0*pad, pad+plxy, 2.0*pls+4.0*pad, pls+pad+plxy], title = dater, xrange = [min(mgr.x), max(mgr.x)] , yrange = [min(mgr.y), max(mgr.y)]    
+      endif
+     
   endif
 
                        
@@ -1611,10 +1670,11 @@ REPEAT BEGIN
             sv_sw = 0
          END	  
      14: BEGIN
-            print, 'Post-Detection Merge'
-
-
-
+            print, 'Longitudinal Guide'
+			amj_pick_long, mdi_ir, mdi_il, ARs, refx, refy, refm, pls, pad, plxy, plxx, d_zoom
+            ds_swr = 3
+            redraw = 1			
+			
          END
      15: BEGIN
             print, '<< Reference'
@@ -1717,7 +1777,7 @@ REPEAT BEGIN
      24: BEGIN
             print, 'Right Overlay'
             ds_swr = ds_swr + 1
-            if (ds_swr gt 2) then ds_swr = 1
+            if (ds_swr gt 3) then ds_swr = 1
             redraw = 1                    
          END
     ENDCASE
