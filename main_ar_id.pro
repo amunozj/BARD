@@ -844,7 +844,7 @@ END
 
 
 ;EDITS
-PRO main_ar_id, start_date=start_date, continue = continue, restoref = restoref, pnr_file = pnr_file, labl = labl, buff = buff, nobuff = nobuff, kerth1=kerth1, kerth2=kerth2, arth=arth, eros=eros, dila=dila, dislim=dislim, ovrlim=ovrlim, ardislim1=ardislim1, exp_f=exp_f, exp_d=exp_d, exp_s=exp_s, MxFlxim=MxFlxim, instr = instr
+PRO main_ar_id, start_date=start_date, continue = continue, restoref = restoref, pnr_file = pnr_file, labl = labl, buff = buff, nobuff = nobuff, kerth1=kerth1, kerth2=kerth2, arth=arth, eros=eros, dila=dila, dislim=dislim, ovrlim=ovrlim, ardislim1=ardislim1, exp_f=exp_f, exp_d=exp_d, exp_s=exp_s, MxFlxim=MxFlxim, instr = instr, rtrn_chk = rtrn_chk
 
 device,retain=2
   
@@ -883,6 +883,16 @@ endif
 
 ;initializing run and variables
 ;-------------------------------------------------------------------------------------
+
+;Return Check
+
+rchk_sw = 0		;Switch that plots the operational active regions on the reference magnetogram
+dy_skp  = 0	    ;Default amount of days to skip ahead to see the return
+
+if keyword_set(rtrn_chk) then begin
+	rchk_sw = 1
+	dy_skp  = 24
+endif
 
 ;Reference longitude and latitude
 ref_sw = 0   			;Switch that turns on the reference lines.
@@ -1212,7 +1222,7 @@ REPEAT BEGIN
     mdi_ir = mdi_ir - rw_msw
     rw_msw = 0
     
-    mdi_il = mdi_ir - 1
+    mdi_il = mdi_ir - 1 + dy_skp
     lw_msw = -1
   
   endif
@@ -1251,6 +1261,12 @@ REPEAT BEGIN
 
   if (stat eq 1) then begin
 
+	  ;If doing a checkup run make sure that the detection of PNRs and ARs is deactivated
+	  if keyword_set(rtrn_chk) then begin
+		detpn_sw = 0
+		detar_sw = 0
+	  endif
+  
       ;Performing detection of possitive and negative regions
       if ( (detpn_sw eq 1) ) then begin
         amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const;, /disp		
@@ -1275,7 +1291,7 @@ REPEAT BEGIN
       
       ;Definition of window parameters and window initialization
 ;      pls = 800;
-      pls = 500;
+      pls = 600;
       pad = 40;
       plxy = 100;
       plxx = 200;
@@ -1288,19 +1304,19 @@ REPEAT BEGIN
       ;Exploration Window
       ;AR overlay
       if (ds_swl eq 1) then begin
-        amj_mgplot, mgl.img, mdi_il, instr, hdr_i=hdrl, ref_sw = ref_sw, lath = latlr, Lonh=Lonhrl, seg_const = seg_const, /tag, ARs = ARs, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [2.0*pad, pad+plxy, pls+2.0*pad, pls+pad+plxy], title = datel, xrange = [min(mgl.x), max(mgl.x)] , yrange = [min(mgl.y), max(mgl.y)]    
+        amj_mgplot, mgl.img, mdi_il, instr, hdr_i=hdrl, mdi_rf = mdi_ir, hdr_f=hdrr, ref_sw = ref_sw, lath = latlr, Lonh=Lonhrl, rchk_sw = rchk_sw, seg_const = seg_const, /tag, ARs = ARs, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [2.0*pad, pad+plxy, pls+2.0*pad, pls+pad+plxy], title = datel, xrange = [min(mgl.x), max(mgl.x)] , yrange = [min(mgl.y), max(mgl.y)]    
       endif
       ;Mixed overlay
       if (ds_swl eq 2) then begin
-        amj_mgplot, mgl.img, mdi_il, instr, hdr_i=hdrl, ref_sw = ref_sw, lath = latlr, Lonh=Lonhrl, seg_const = seg_const, /tag, PRs = PRs, NRs = NRs, ARs = ARs, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [2.0*pad, pad+plxy, pls+2.0*pad, pls+pad+plxy], title = datel, xrange = [min(mgl.x), max(mgl.x)] , yrange = [min(mgl.y), max(mgl.y)]    
+        amj_mgplot, mgl.img, mdi_il, instr, hdr_i=hdrl, mdi_rf = mdi_ir, hdr_f=hdrr, ref_sw = ref_sw, lath = latlr, Lonh=Lonhrl, rchk_sw = rchk_sw, seg_const = seg_const, /tag, PRs = PRs, NRs = NRs, ARs = ARs, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [2.0*pad, pad+plxy, pls+2.0*pad, pls+pad+plxy], title = datel, xrange = [min(mgl.x), max(mgl.x)] , yrange = [min(mgl.y), max(mgl.y)]    
       endif
       ;PNR overlay
       if (ds_swl eq 3) then begin
-        amj_mgplot, mgl.img, mdi_il, instr, hdr_i=hdrl, ref_sw = ref_sw, lath = latlr, Lonh=Lonhrl, seg_const = seg_const, /tag, PRs = PRs, NRs = NRs, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [2.0*pad, pad+plxy, pls+2.0*pad, pls+pad+plxy], title = datel, xrange = [min(mgl.x), max(mgl.x)] , yrange = [min(mgl.y), max(mgl.y)]        
+        amj_mgplot, mgl.img, mdi_il, instr, hdr_i=hdrl, mdi_rf = mdi_ir, hdr_f=hdrr, ref_sw = ref_sw, lath = latlr, Lonh=Lonhrl, rchk_sw = rchk_sw, seg_const = seg_const, /tag, PRs = PRs, NRs = NRs, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [2.0*pad, pad+plxy, pls+2.0*pad, pls+pad+plxy], title = datel, xrange = [min(mgl.x), max(mgl.x)] , yrange = [min(mgl.y), max(mgl.y)]        
       endif
       ;No overlay
       if (ds_swl eq 4) then begin
-        amj_mgplot, mgl.img, mdi_il, instr, hdr_i=hdrl, ref_sw = ref_sw, lath = latlr, Lonh=Lonhrl, seg_const = seg_const, /tag, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [2.0*pad, pad+plxy, pls+2.0*pad, pls+pad+plxy], title = datel, xrange = [min(mgl.x), max(mgl.x)] , yrange = [min(mgl.y), max(mgl.y)]        
+        amj_mgplot, mgl.img, mdi_il, instr, hdr_i=hdrl, mdi_rf = mdi_ir, hdr_f=hdrr, ref_sw = ref_sw, lath = latlr, Lonh=Lonhrl, seg_const = seg_const, /tag, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [2.0*pad, pad+plxy, pls+2.0*pad, pls+pad+plxy], title = datel, xrange = [min(mgl.x), max(mgl.x)] , yrange = [min(mgl.y), max(mgl.y)]        
       endif
        
       ;Detection Window
@@ -1830,8 +1846,9 @@ REPEAT BEGIN
          END         
      10: BEGIN
             print, 'Synchronize'
-            mdi_il = mdi_ir
-            redraw = 1                    
+            mdi_il = mdi_ir - 1
+            redraw = 1
+			lw_msw = -1			
          END		 
      11: BEGIN
             print, 'Contrast Up'
@@ -1953,7 +1970,7 @@ REPEAT BEGIN
      20: BEGIN
             print, '< Control'
             mdi_ir = mdi_ir - 1
-            mdi_il = mdi_il - 1
+            mdi_il = mdi_il - 1 + dy_skp
             redraw =  1
             rw_msw = -1 
 
@@ -1977,7 +1994,7 @@ REPEAT BEGIN
               print, 'No available MDI magnetogram.'
             endif else begin
 				mdi_ir = mdi_tmp
-				mdi_il = mdi_ir - 1
+				mdi_il = mdi_ir - 1 + dy_skp
 				redraw =  1
 				rw_msw =  1
 				lw_msw = -1
@@ -1992,7 +2009,8 @@ REPEAT BEGIN
          END
      22: BEGIN
             print, '> Control'
-            mdi_ir = mdi_ir + 1
+            mdi_ir = mdi_ir + 1			
+            mdi_il = mdi_il - 1 + dy_skp
             sv_sw = 1
             
             if (total(mdi_ir_vis eq mdi_ir) eq 0) then begin
