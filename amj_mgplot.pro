@@ -1,4 +1,4 @@
-PRO amj_mgplot, im, mdi_i, instr, mdi_rf=mdi_rf, hdr_i=hdr_i, hdr_f=hdr_f, seg_const=seg_const, PRs = PRs, NRs = NRs, ARs = ARs, tag = tag, d_xsize = d_xsize, d_ysize = d_ysize, max = max, pos = pos, title = title, xrange = xrange, yrange = yrange, prt=prt, sqs_nm = sqs_nm, shw_lbl = shw_lbl
+PRO amj_mgplot, im, mdi_i, instr, hdr_i=hdr_i, seg_const=seg_const, PRs = PRs, NRs = NRs, ARs = ARs, tag = tag, d_xsize = d_xsize, d_ysize = d_ysize, max = max, pos = pos, title = title, xrange = xrange, yrange = yrange, prt=prt, sqs_nm = sqs_nm, shw_lbl = shw_lbl, lath = lath, Lonh=Lonh, ref_sw = ref_sw
 
 
     ;Constant with parameters for plotting, make sure the values are the same as in kpvt_pnr_dt.rpo
@@ -121,7 +121,7 @@ PRO amj_mgplot, im, mdi_i, instr, mdi_rf=mdi_rf, hdr_i=hdr_i, hdr_f=hdr_f, seg_c
     
     endif
     
-    if keyword_set(mdi_rf) and keyword_set(hdr_i) and keyword_set(hdr_f) then begin
+    if keyword_set(Lath) and keyword_set(Lonh) and keyword_set(hdr_i) and keyword_set(ref_sw) then begin
      
         ;
         ;Calculation of heliospheric coordinates
@@ -194,132 +194,33 @@ PRO amj_mgplot, im, mdi_i, instr, mdi_rf=mdi_rf, hdr_i=hdr_i, hdr_f=hdr_f, seg_c
 
 		endelse
 		
-        ;Other magnetogram -------------------------------------------------------------------
-		;HMI uses structures for header values
-		if instr eq 4 then begin
-			datef = hdr_f.DATE_OBS
-
-			;Define center and radius
-			hfxf = hdr_f.CRPIX1 ;  Location of the center in x pixels 
-			hfyf = hdr_f.CRPIX2 ;    Location of the center in y pixels
-			dif = hdr_f.RSUN_OBS/hdr_f.CDELT1;
-
-			;Load Solar Coordinates
-			P0f = 0.0
-			RDf = hdr_f.DSUN_OBS/hdr_f.RSUN_REF
-			B0f = hdr_f.CRLT_OBS
-			L0f = hdr_f.CRLN_OBS
-
-			;Observer Coordinates
-			X_sclf = hdr_f.CDELT1/60.0
-			Y_sclf = hdr_f.CDELT2/60.0
-			
-		endif else begin
-
-
-			datef = fxpar(hdr_f, 'DATE_OBS')
-
-			;KPVT-512
-			if instr eq 1 then begin
-			
-				;Define center and radius
-				hfxf = fxpar(hdr_f, 'CRPIX1A');35;'CRPIX1');  Location of the center in x pixels 
-				hfyf = fxpar(hdr_f, 'CRPIX2A');+1.0;    Location of the center in y pixels
-				dif = fxpar(hdr_f,'EPH_R0');
-
-				;Load Solar Coordinates
-				P0f = 0.0
-				RDf = !values.f_nan
-				B0f = fxpar(hdr_f, 'EPH_B0')
-				L0f = fxpar(hdr_f, 'EPH_L0')
-
-				;Observer Coordinates
-				X_sclf = fxpar(hdr_f, 'CDELT1')*fxpar(hdr_f, 'CRR_SCLX')/60.0
-				Y_sclf = fxpar(hdr_f, 'CDELT2')*fxpar(hdr_f, 'CRR_SCLY')/60.0
-
-			endif
-
-			;MDI
-			if instr eq 3 then begin
-			
-				;Define center and radius
-				hfxf = fxpar(hdr_f, 'X0');  Location of the center in x pixels 
-				hfyf = fxpar(hdr_f, 'Y0');  Location of the center in y pixels
-				dif = fxpar(hdr_f,'R_SUN');
-
-				;Load Solar Coordinates
-				P0f = fxpar(hdr_f, 'P_ANGLE')
-				RDf = fxpar(hdr_f, 'OBS_DIST')/0.0046491
-				B0f = fxpar(hdr_f, 'B0')
-				L0f = fxpar(hdr_f, 'L0')
-
-				;Observer Coordinates
-				X_sclf = fxpar(hdr_f, 'XSCALE')
-				Y_sclf = fxpar(hdr_f, 'YSCALE')	
-			
-			endif
-
-		endelse
-
+		Latht = 90-findgen(1,181)
             
-        dtim = anytim(datei,/utime)-anytim(datef,/utime)
-
-        Lath = 90-findgen(1,181)
-        
-        
-        ; Differential rotation profile from Snodgrass (1983), gives rotation
-        ; rate vs. lat. in microradians per sec:
-        ;
-        ;  omega = snod_A + snod_B*sin(latitude)^2 + snod_C*sin(latitude)^4
-        ;====================================================================
-        ;snod_A =  2.902  ; magnetic rot. coeffs, in microrad.    
-        snod_A =  0.0367;2.902  ; magnetic rot. coeffs, in microrad.    
-        ;Set to 0.0367 because the heliographic coordinates include the carrington rotation
-        
-        snod_B = -0.464
-        snod_C = -0.328   
-        
-        ;Accounting for differential rotation
-        omegap = 1e-6*(snod_A + $ ; Omega at each pixel's lat., in radians
-                      snod_B*sin(abs(Lath)*!dtor)^2 + $
-                      snod_C*sin(abs(Lath)*!dtor)^4 )/!dtor
-
-        if mdi_i lt mdi_rf then begin
-
-            ;Calculating extremum longitude
-            helio = arcmin2hel(dif, 0, date = datef, p = P0f, b0 = B0f, l0 = L0f, sphere = 1)
-
-            ;Calculating new longitude
-            Lonh = helio[1] + omegap*dtim
-            ;Calculating new longitude
-            Lonh2 = helio[1] + 5 + omegap*dtim
-            
-        endif else begin
-
-            ;Calculating extremum longitude
-            helio = arcmin2hel(-dif, 0, date = datef, p = P0f, b0 = B0f, l0 = L0f, sphere = 1)
-
-            ;Calculating new longitude
-            Lonh = helio[1] + omegap*dtim
-            ;Calculating new longitude
-            Lonh2 = helio[1] - 5 + omegap*dtim
-            
-        endelse        
-            
-        Vsbl = hel2arcmin(Lath, Lonh, vsblN, p = P0i, b0 = B0i, l0 = L0i , radius = (dii+2.0)*X_scli)/X_scli
+        Vsbl = hel2arcmin(Latht, Lonh, vsblN, p = P0i, b0 = B0i, l0 = L0i , rsun = dii*X_scli*60.0)/X_scli
+		
+		;print, Vsbl
+		
         Vsbl_ind = where(vsblN eq 0)
         Vsbl[0,Vsbl_ind] = !values.f_nan
         Vsbl[1,Vsbl_ind] = !values.f_nan
-        
-        Vsbl2 = hel2arcmin(Lath, Lonh2, vsblN, p = P0i, b0 = B0i, l0 = L0i , radius = (dii+2.0)*X_scli)/X_scli
+		
+		
+		Lonht = 180-findgen(1,361)
+            
+        Vsbl2 = hel2arcmin(Lath, Lonht, vsblN, p = P0i, b0 = B0i, l0 = L0i , rsun = dii*X_scli*60.0)/X_scli
+		
+		;print, Vsbl
+		
         Vsbl_ind = where(vsblN eq 0)
         Vsbl2[0,Vsbl_ind] = !values.f_nan
-        Vsbl2[1,Vsbl_ind] = !values.f_nan
-        
+        Vsbl2[1,Vsbl_ind] = !values.f_nan		
+		
+		
+                
         loadct, 13, /silent
         
-        plots, (Vsbl[0,*] + hfxi)*d_zoom + pos[0], (Vsbl[1,*] + hfyi)*d_zoom + pos[1] ,color='00FFFF'x,/device,thick=2
-        plots, (Vsbl2[0,*] + hfxi)*d_zoom + pos[0], (Vsbl2[1,*] + hfyi)*d_zoom + pos[1] ,color='00FFFF'x,/device,thick=1,LINESTYLE=2
+        plots, (Vsbl[0,*] + hfxi)*d_zoom + pos[0], (Vsbl[1,*] + hfyi)*d_zoom + pos[1] ,color='00FFFF'x,/device,thick=2,LINESTYLE=2
+        plots, (Vsbl2[0,*] + hfxi)*d_zoom + pos[0], (Vsbl2[1,*] + hfyi)*d_zoom + pos[1] ,color='00FFFF'x,/device,thick=2,LINESTYLE=2
       
         loadct, 0, /silent
    
