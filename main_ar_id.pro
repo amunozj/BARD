@@ -1,6 +1,3 @@
-;hello 2
-
-
 FUNCTION button_choice, pls, pad, plxy, plxx
 
 ftsz = 14
