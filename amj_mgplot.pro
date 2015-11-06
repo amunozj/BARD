@@ -306,12 +306,12 @@ PRO amj_mgplot, im, mdi_i, instr, mdi_rf=mdi_rf, hdr_i=hdr_i, hdr_f=hdr_f, seg_c
             
         endelse        
             
-        Vsbl = hel2arcmin(Lath, Lonh, vsblN, p = P0i, b0 = B0i, l0 = L0i , radius = (dii+2.0)*X_scli)/X_scli
+        Vsbl = hel2arcmin(Lath, Lonh, vsblN, p = P0i, b0 = B0i, l0 = L0i , rsun = dii*X_scli*60.0)/X_scli
         Vsbl_ind = where(vsblN eq 0)
         Vsbl[0,Vsbl_ind] = !values.f_nan
         Vsbl[1,Vsbl_ind] = !values.f_nan
         
-        Vsbl2 = hel2arcmin(Lath, Lonh2, vsblN, p = P0i, b0 = B0i, l0 = L0i , radius = (dii+2.0)*X_scli)/X_scli
+        Vsbl2 = hel2arcmin(Lath, Lonh2, vsblN, p = P0i, b0 = B0i, l0 = L0i , rsun = dii*X_scli*60.0)/X_scli
         Vsbl_ind = where(vsblN eq 0)
         Vsbl2[0,Vsbl_ind] = !values.f_nan
         Vsbl2[1,Vsbl_ind] = !values.f_nan

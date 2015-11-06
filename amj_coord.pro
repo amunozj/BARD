@@ -176,17 +176,17 @@ LatN_pl = fltarr(nps_pl+1) + 70.0
 LatE_pl = fltarr(nps_pl+1)
 LatS_pl = fltarr(nps_pl+1) - 70.0
 
-N_pl = hel2arcmin(LatN_pl, Lon_pl, vsblN, p = P0, b0 = B0, r0 = RD, l0 = L0 , radius = (di+2.0)*X_scl)/X_scl
+N_pl = hel2arcmin(LatN_pl, Lon_pl, vsblN, p = P0, b0 = B0, r0 = RD, l0 = L0 , rsun = di*X_scl)/X_scl
 N_pl_ind = where(vsblN eq 0)
 N_pl[0,N_pl_ind] = !values.f_nan
 N_pl[1,N_pl_ind] = !values.f_nan
 
-E_pl = hel2arcmin(LatE_pl, Lon_pl, vsblE, p = P0, b0 = B0, r0 = RD, l0 = L0 , radius = (di+2.0)*X_scl)/X_scl
+E_pl = hel2arcmin(LatE_pl, Lon_pl, vsblE, p = P0, b0 = B0, r0 = RD, l0 = L0 , rsun = di*X_scl)/X_scl
 E_pl_ind = where(vsblE eq 0)
 E_pl[0,E_pl_ind] = !values.f_nan
 E_pl[1,E_pl_ind] = !values.f_nan
 
-S_pl = hel2arcmin(LatS_pl, Lon_pl, vsblS, p = P0, b0 = B0, r0 = RD, l0 = L0 , radius = (di+2.0)*X_scl)/X_scl
+S_pl = hel2arcmin(LatS_pl, Lon_pl, vsblS, p = P0, b0 = B0, r0 = RD, l0 = L0 , rsun = di*X_scl)/X_scl
 S_pl_ind = where(vsblS eq 0)
 S_pl[0,S_pl_ind] = !values.f_nan
 S_pl[1,S_pl_ind] = !values.f_nan
