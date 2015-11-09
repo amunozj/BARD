@@ -1,12 +1,10 @@
-;hello2
-
 FUNCTION button_choice, pls, pad, plxy, plxx
 
 ftsz = 14
 
 ;Defining control (right) buttons
 ;labs = ['RE-DETECT', 'RE-LABEL', 'AGGREGATE', 'CREATE', 'DELETE', 'QUIT' ]
-labs = ['MERGE POST-DET','PRINT SCREEN','CONTRAST -','CONTRAST +','SYNCHRONIZE','RE-DETECT', 'FRAGMENT', 'MERGE', 'RE-LABEL', 'CREATE/TRACK', 'CREATE', 'DELETE ALL', 'DELETE ONE', 'QUIT' ]
+labs = ['LON-GUIDE','PRINT SCREEN','CONTRAST -','CONTRAST +','SYNCHRONIZE','RE-DETECT', 'FRAGMENT', 'MERGE', 'RE-LABEL', 'CREATE/TRACK', 'CREATE', 'DELETE ALL', 'DELETE ONE', 'QUIT' ]
 
 nl = n_elements( labs )
 
@@ -225,6 +223,251 @@ return
 END
 
 ;----------------------------------------------------------------------------------------------------------
+
+
+
+PRO amj_pick_long, hdr_r, hdr_l, ARs, latlr, Lonhl, Lonhr, pls, pad, plxy, plxx, d_zoom, instr
+
+print, 'Left click once on disk  ||  Rigth Click to cancel'
+scc_sw = 0 ;Switch to indicate success
+
+
+;LEFT MAGNETOGRAM-------------------------------------------------------
+
+;HMI uses structures for header values
+if instr eq 4 then begin
+	datel = hdr_l.DATE_OBS
+
+	;Define center and radius
+	hfxl = hdr_l.CRPIX1 ;  Location of the center in x pixels 
+	hfyl = hdr_l.CRPIX2 ;    Location of the center in y pixels
+	dil = hdr_l.RSUN_OBS/hdr_l.CDELT1;
+
+	;Load Solar Coordinates
+	P0l = 0.0
+	RDl = hdr_l.DSUN_OBS/hdr_l.RSUN_REF
+	B0l = hdr_l.CRLT_OBS
+	L0l = hdr_l.CRLN_OBS
+
+	;Observer Coordinates
+	X_scll = hdr_l.CDELT1/60.0
+	Y_scll = hdr_l.CDELT2/60.0
+	
+endif else begin
+
+
+	datel = fxpar(hdr_l, 'DATE_OBS')
+
+	;KPVT-512
+	if instr eq 1 then begin
+	
+		;Define center and radius
+		hfxl = fxpar(hdr_l, 'CRPIX1A');35;'CRPIX1');  Location of the center in x pixels 
+		hfyl = fxpar(hdr_l, 'CRPIX2A');+1.0;    Location of the center in y pixels
+		dil = fxpar(hdr_l,'EPH_R0');
+
+		;Load Solar Coordinates
+		P0l = 0.0
+		RDl = !values.f_nan
+		B0l = fxpar(hdr_l, 'EPH_B0')
+		L0l = fxpar(hdr_l, 'EPH_L0')
+
+		;Observer Coordinates
+		X_scll = fxpar(hdr_l, 'CDELT1')*fxpar(hdr_l, 'CRR_SCLX')/60.0
+		Y_scll = fxpar(hdr_l, 'CDELT2')*fxpar(hdr_l, 'CRR_SCLY')/60.0
+
+	endif
+
+	;MDI
+	if instr eq 3 then begin
+	
+		;Define center and radius
+		hfxl = fxpar(hdr_l, 'X0');  Location of the center in x pixels 
+		hfyl = fxpar(hdr_l, 'Y0');  Location of the center in y pixels
+		dil = fxpar(hdr_l,'R_SUN');
+
+		;Load Solar Coordinates
+		P0l = fxpar(hdr_l, 'P_ANGLE')
+		RDl = fxpar(hdr_l, 'OBS_DIST')/0.0046491
+		B0l = fxpar(hdr_l, 'B0')
+		L0l = fxpar(hdr_l, 'L0')
+
+		;Observer Coordinates
+		X_scll = fxpar(hdr_l, 'XSCALE')
+		Y_scll = fxpar(hdr_l, 'YSCALE')	
+	
+	endif
+
+endelse
+
+;RIGHT MAGNETOGRAM-------------------------------------------------------
+
+;HMI uses structures for header values
+if instr eq 4 then begin
+	dater = hdr_r.DATE_OBS
+
+	;Define center and radius
+	hfxr = hdr_r.CRPIX1 ;  Location of the center in x pixels 
+	hfyr = hdr_r.CRPIX2 ;    Location of the center in y pixels
+	dir = hdr_r.RSUN_OBS/hdr_r.CDELT1;
+
+	;Load Solar Coordinates
+	P0r = 0.0
+	RDr = hdr_r.DSUN_OBS/hdr_r.RSUN_REF
+	B0r = hdr_r.CRLT_OBS
+	L0r = hdr_r.CRLN_OBS
+
+	;Observer Coordinates
+	X_sclr = hdr_r.CDELT1/60.0
+	Y_sclr = hdr_r.CDELT2/60.0
+	
+endif else begin
+
+
+	dater = fxpar(hdr_r, 'DATE_OBS')
+
+	;KPVT-512
+	if instr eq 1 then begin
+	
+		;Define center and radius
+		hfxr = fxpar(hdr_r, 'CRPIX1A');35;'CRPIX1');  Location of the center in x pixels 
+		hfyr = fxpar(hdr_r, 'CRPIX2A');+1.0;    Location of the center in y pixels
+		dir = fxpar(hdr_r,'EPH_R0');
+
+		;Load Solar Coordinates
+		P0r = 0.0
+		RDr = !values.f_nan
+		B0r = fxpar(hdr_r, 'EPH_B0')
+		L0r = fxpar(hdr_r, 'EPH_L0')
+
+		;Observer Coordinates
+		X_sclr = fxpar(hdr_r, 'CDELT1')*fxpar(hdr_r, 'CRR_SCLX')/60.0
+		Y_sclr = fxpar(hdr_r, 'CDELT2')*fxpar(hdr_r, 'CRR_SCLY')/60.0
+
+	endif
+
+	;MDI
+	if instr eq 3 then begin
+	
+		;Define center and radius
+		hfxr = fxpar(hdr_r, 'X0');  Location of the center in x pixels 
+		hfyr = fxpar(hdr_r, 'Y0');  Location of the center in y pixels
+		dir = fxpar(hdr_r,'R_SUN');
+
+		;Load Solar Coordinates
+		P0r = fxpar(hdr_r, 'P_ANGLE')
+		RDr = fxpar(hdr_r, 'OBS_DIST')/0.0046491
+		B0r = fxpar(hdr_r, 'B0')
+		L0r = fxpar(hdr_r, 'L0')
+
+		;Observer Coordinates
+		X_sclr = fxpar(hdr_r, 'XSCALE')
+		Y_sclr = fxpar(hdr_r, 'YSCALE')	
+	
+	endif
+
+endelse
+
+while ( (scc_sw eq 0) and ( !mouse.button ne 4 )) do begin
+  
+	cursor, u, v, 3, /device
+
+	;Check Window  
+	if (u le pls+3.0*pad) then begin
+		pos  = [2.0*pad, pad+plxy]
+		refm = -1
+		rad  = dil
+		xcen = hfxl
+		ycen = hfyl	
+
+		scl  = (X_scll+Y_scll)/2.0 
+		
+	endif else begin
+		pos = [pls+4.0*pad, pad+plxy]
+		refm = 1
+		rad  = dir
+		xcen = hfxr
+		ycen = hfyr
+
+	    scl  = (X_sclr+Y_sclr)/2.0 
+		
+	end
+
+	;Find positions
+	
+	refx = ((u-pos[0]))/d_zoom
+	refy = ((v-pos[1]))/d_zoom
+	
+	;Find distances
+    disp = sqrt((refx-xcen)^2.0 + (refy-ycen)^2.0)
+
+	;Making sure the point is inside the solar disk
+	if disp gt rad then begin
+		print, 'Please click inside the solar disk'
+		print, 'Left click once on disk  ||  Rigth Click to cancel'
+	endif else begin
+	
+        ; Differential rotation profile from Snodgrass (1983), gives rotation
+        ; rate vs. lat. in microradians per sec:
+        ;
+        ;  omega = snod_A + snod_B*sin(latitude)^2 + snod_C*sin(latitude)^4
+        ;====================================================================
+        ;snod_A =  2.902  ; magnetic rot. coeffs, in microrad.    
+        snod_A =  0.0367;2.902  ; magnetic rot. coeffs, in microrad.    
+        ;Set to 0.0367 because the heliographic coordinates include the carrington rotation
+        
+        snod_B = -0.464
+        snod_C = -0.328   
+
+		Lath = 90-findgen(1,181)
+		
+        ;Accounting for differential rotation
+        omegap = 1e-6*(snod_A + $ ; Omega at each pixel's lat., in radians
+                      snod_B*sin(abs(Lath)*!dtor)^2 + $
+                      snod_C*sin(abs(Lath)*!dtor)^4 )/!dtor	
+		
+	
+		;Calculating longitude of clicked point and equivalent on the other magnetogram window
+		
+		;LEFT MAGNETOGRAM-------------------------------------------------------
+		if refm eq -1 then begin
+
+			helio = arcmin2hel((refx-xcen)*scl, (refy-ycen)*scl, date = datel, p = P0l, b0 = B0l, l0 = L0l, sphere = 1, rsun = rad*scl*60)
+			dtim = anytim(datel,/utime)-anytim(dater,/utime)
+
+			Lonhl = helio[1] + omegap*0.0			
+			Lonhr = helio[1] - omegap*dtim
+		 
+		;RIGHT MAGNETOGRAM-------------------------------------------------------
+		endif else begin
+
+			helio = arcmin2hel((refx-xcen)*scl, (refy-ycen)*scl, date = dater, p = P0r, b0 = B0r, l0 = L0r, sphere = 1, rsun = rad*scl*60)
+			dtim = anytim(dater,/utime)-anytim(datel,/utime)
+
+			Lonhr = helio[1] + omegap*0.0			
+			Lonhl = helio[1] - omegap*dtim		
+		
+		endelse
+		
+		latlr = helio[0]
+		
+		print, refx, refy, helio[0], helio[1], dtim
+	
+	
+		scc_sw = 1	
+
+	endelse
+		
+endwhile
+
+if (!mouse.button eq 4) then inx = -2
+                
+return
+END
+
+;----------------------------------------------------------------------------------------------------------
+
+
 
 
 
@@ -601,7 +844,7 @@ END
 
 
 ;EDITS
-PRO main_ar_id, start_date=start_date, continue = continue, restoref = restoref, pnr_file = pnr_file, labl = labl, buff = buff, nobuff = nobuff, kerth1=kerth1, kerth2=kerth2, arth=arth, eros=eros, dila=dila, dislim=dislim, ovrlim=ovrlim, ardislim1=ardislim1, exp_f=exp_f, exp_d=exp_d, exp_s=exp_s, MxFlxim=MxFlxim, instr = instr
+PRO main_ar_id, start_date=start_date, continue = continue, restoref = restoref, pnr_file = pnr_file, labl = labl, buff = buff, nobuff = nobuff, kerth1=kerth1, kerth2=kerth2, arth=arth, eros=eros, dila=dila, dislim=dislim, ovrlim=ovrlim, ardislim1=ardislim1, exp_f=exp_f, exp_d=exp_d, exp_s=exp_s, MxFlxim=MxFlxim, instr = instr, rtrn_chk = rtrn_chk
 
 device,retain=2
   
@@ -641,7 +884,21 @@ endif
 ;initializing run and variables
 ;-------------------------------------------------------------------------------------
 
+;Return Check
 
+rchk_sw = 0		;Switch that plots the operational active regions on the reference magnetogram
+dy_skp  = 0	    ;Default amount of days to skip ahead to see the return
+
+if keyword_set(rtrn_chk) then begin
+	rchk_sw = 1
+	dy_skp  = 24
+endif
+
+;Reference longitude and latitude
+ref_sw = 0   			;Switch that turns on the reference lines.
+Lonhrl = !values.f_nan	;Longitude of the reference line in the left magnetogram
+Lonhrr = !values.f_nan  ;Longitude of the reference line in the right magnetogram
+latlr  = !values.f_nan  ;Latitude of the reference line in the both magnetograms
 
 ;Buffer definition
 buff_sw = 0; Switch indicating the run is using a buffer
@@ -768,7 +1025,7 @@ if keyword_set(continue) and keyword_set(nobuff) then buff_sw=0
 
 
 ;Active region detection constants
-ar_cnst={dis_lim1:4.0, dis_lim2:4.0, exp_f: 1.0,  exp_d: 4.0, exp_s: 1.0, mlth: 40.0, mxB: 180.0, MxFlxim:3.0, Imb_tol: 0.10, Imb_it: 10, lim_lon: -90.0, k_sig:15.0, npr: 5, nmgnt: 5 , vld_thr: 0.69, valid_range:[-20000.,20000.]}
+ar_cnst={dis_lim1:5.0, dis_lim2:4.0, exp_f: 1.0,  exp_d: 4.0, exp_s: 1.0, mlth: 40.0, mxB: 180.0, MxFlxim:3.0, Imb_tol: 0.10, Imb_it: 10, lim_lon: -90.0, k_sig:15.0, npr: 5, nmgnt: 5 , vld_thr: 0.69, valid_range:[-20000.,20000.]}
 
 ;KPVT 512
 if instr eq 1 then begin
@@ -965,7 +1222,7 @@ REPEAT BEGIN
     mdi_ir = mdi_ir - rw_msw
     rw_msw = 0
     
-    mdi_il = mdi_ir - 1
+    mdi_il = mdi_ir - 1 + dy_skp
     lw_msw = -1
   
   endif
@@ -1004,6 +1261,12 @@ REPEAT BEGIN
 
   if (stat eq 1) then begin
 
+	  ;If doing a checkup run make sure that the detection of PNRs and ARs is deactivated
+	  if keyword_set(rtrn_chk) then begin
+		detpn_sw = 0
+		detar_sw = 0
+	  endif
+  
       ;Performing detection of possitive and negative regions
       if ( (detpn_sw eq 1) ) then begin
         amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const;, /disp		
@@ -1028,7 +1291,7 @@ REPEAT BEGIN
       
       ;Definition of window parameters and window initialization
 ;      pls = 800;
-      pls = 500;
+      pls = 600;
       pad = 40;
       plxy = 100;
       plxx = 200;
@@ -1041,25 +1304,25 @@ REPEAT BEGIN
       ;Exploration Window
       ;AR overlay
       if (ds_swl eq 1) then begin
-        amj_mgplot, mgl.img, mdi_il, instr, mdi_rf=mdi_ir, hdr_i=hdrl, hdr_f=hdrr, seg_const = seg_const, /tag, ARs = ARs, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [2.0*pad, pad+plxy, pls+2.0*pad, pls+pad+plxy], title = datel, xrange = [min(mgl.x), max(mgl.x)] , yrange = [min(mgl.y), max(mgl.y)]    
+        amj_mgplot, mgl.img, mdi_il, instr, hdr_i=hdrl, mdi_rf = mdi_ir, hdr_f=hdrr, ref_sw = ref_sw, lath = latlr, Lonh=Lonhrl, rchk_sw = rchk_sw, seg_const = seg_const, /tag, ARs = ARs, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [2.0*pad, pad+plxy, pls+2.0*pad, pls+pad+plxy], title = datel, xrange = [min(mgl.x), max(mgl.x)] , yrange = [min(mgl.y), max(mgl.y)]    
       endif
       ;Mixed overlay
       if (ds_swl eq 2) then begin
-        amj_mgplot, mgl.img, mdi_il, instr, mdi_rf=mdi_ir, hdr_i=hdrl, hdr_f=hdrr, seg_const = seg_const, /tag, PRs = PRs, NRs = NRs, ARs = ARs, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [2.0*pad, pad+plxy, pls+2.0*pad, pls+pad+plxy], title = datel, xrange = [min(mgl.x), max(mgl.x)] , yrange = [min(mgl.y), max(mgl.y)]    
+        amj_mgplot, mgl.img, mdi_il, instr, hdr_i=hdrl, mdi_rf = mdi_ir, hdr_f=hdrr, ref_sw = ref_sw, lath = latlr, Lonh=Lonhrl, rchk_sw = rchk_sw, seg_const = seg_const, /tag, PRs = PRs, NRs = NRs, ARs = ARs, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [2.0*pad, pad+plxy, pls+2.0*pad, pls+pad+plxy], title = datel, xrange = [min(mgl.x), max(mgl.x)] , yrange = [min(mgl.y), max(mgl.y)]    
       endif
       ;PNR overlay
       if (ds_swl eq 3) then begin
-        amj_mgplot, mgl.img, mdi_il, instr, mdi_rf=mdi_ir, hdr_i=hdrl, hdr_f=hdrr, seg_const = seg_const, /tag, PRs = PRs, NRs = NRs, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [2.0*pad, pad+plxy, pls+2.0*pad, pls+pad+plxy], title = datel, xrange = [min(mgl.x), max(mgl.x)] , yrange = [min(mgl.y), max(mgl.y)]        
+        amj_mgplot, mgl.img, mdi_il, instr, hdr_i=hdrl, mdi_rf = mdi_ir, hdr_f=hdrr, ref_sw = ref_sw, lath = latlr, Lonh=Lonhrl, rchk_sw = rchk_sw, seg_const = seg_const, /tag, PRs = PRs, NRs = NRs, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [2.0*pad, pad+plxy, pls+2.0*pad, pls+pad+plxy], title = datel, xrange = [min(mgl.x), max(mgl.x)] , yrange = [min(mgl.y), max(mgl.y)]        
       endif
       ;No overlay
       if (ds_swl eq 4) then begin
-        amj_mgplot, mgl.img, mdi_il, instr, mdi_rf=mdi_ir, hdr_i=hdrl, hdr_f=hdrr, seg_const = seg_const, /tag, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [2.0*pad, pad+plxy, pls+2.0*pad, pls+pad+plxy], title = datel, xrange = [min(mgl.x), max(mgl.x)] , yrange = [min(mgl.y), max(mgl.y)]        
+        amj_mgplot, mgl.img, mdi_il, instr, hdr_i=hdrl, mdi_rf = mdi_ir, hdr_f=hdrr, ref_sw = ref_sw, lath = latlr, Lonh=Lonhrl, seg_const = seg_const, /tag, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [2.0*pad, pad+plxy, pls+2.0*pad, pls+pad+plxy], title = datel, xrange = [min(mgl.x), max(mgl.x)] , yrange = [min(mgl.y), max(mgl.y)]        
       endif
        
       ;Detection Window
       ;Mixed Overlay
       if (ds_swr eq 1) then begin
-        amj_mgplot, mgr.img, mdi_ir, instr, mdi_rf=mdi_il, hdr_i=hdrr, hdr_f=hdrl, seg_const = seg_const, /tag, PRs = PRs, NRs = NRs, ARs = ARs, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [pls+4.0*pad, pad+plxy, 2.0*pls+4.0*pad, pls+pad+plxy], title = dater, xrange = [min(mgr.x), max(mgr.x)] , yrange = [min(mgr.y), max(mgr.y)]    
+        amj_mgplot, mgr.img, mdi_ir, instr, hdr_i=hdrr, seg_const = seg_const, /tag, PRs = PRs, NRs = NRs, ARs = ARs, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [pls+4.0*pad, pad+plxy, 2.0*pls+4.0*pad, pls+pad+plxy], title = dater, xrange = [min(mgr.x), max(mgr.x)] , yrange = [min(mgr.y), max(mgr.y)]    
       endif
     ;  ;AR overlay
     ;  if (ds_swr eq 2) then begin
@@ -1067,9 +1330,13 @@ REPEAT BEGIN
     ;  endif
       ;No overlay
       if (ds_swr eq 2) then begin
-        amj_mgplot, mgr.img, mdi_ir, instr, mdi_rf=mdi_il, hdr_i=hdrr, hdr_f=hdrl, seg_const = seg_const, /tag, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [pls+4.0*pad, pad+plxy, 2.0*pls+4.0*pad, pls+pad+plxy], title = dater, xrange = [min(mgr.x), max(mgr.x)] , yrange = [min(mgr.y), max(mgr.y)]    
+        amj_mgplot, mgr.img, mdi_ir, instr, hdr_i=hdrr, seg_const = seg_const, /tag, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [pls+4.0*pad, pad+plxy, 2.0*pls+4.0*pad, pls+pad+plxy], title = dater, xrange = [min(mgr.x), max(mgr.x)] , yrange = [min(mgr.y), max(mgr.y)]    
       endif
-      
+      ;Mixed Overlay with reference
+      if (ds_swr eq 3) then begin
+        amj_mgplot, mgr.img, mdi_ir, instr, hdr_i=hdrr, ref_sw = ref_sw, lath = latlr, Lonh=Lonhrr, seg_const = seg_const, /tag, PRs = PRs, NRs = NRs, ARs = ARs, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [pls+4.0*pad, pad+plxy, 2.0*pls+4.0*pad, pls+pad+plxy], title = dater, xrange = [min(mgr.x), max(mgr.x)] , yrange = [min(mgr.y), max(mgr.y)]    
+      endif
+     
   endif
 
                        
@@ -1579,8 +1846,9 @@ REPEAT BEGIN
          END         
      10: BEGIN
             print, 'Synchronize'
-            mdi_il = mdi_ir
-            redraw = 1                    
+            mdi_il = mdi_ir - 1
+            redraw = 1
+			lw_msw = -1			
          END		 
      11: BEGIN
             print, 'Contrast Up'
@@ -1612,22 +1880,42 @@ REPEAT BEGIN
             sv_sw = 0
          END	  
      14: BEGIN
-            print, 'Post-Detection Merge'
-
-
-
+            print, 'Longitudinal Guide'
+			amj_pick_long, hdrr, hdrl, ARs, latlr, Lonhrl, Lonhrr, pls, pad, plxy, plxx, d_zoom, instr
+			
+			;print, Lonhrl
+			;print, Lonhrr
+			
+			ref_sw = 1
+            ds_swr = 3
+            redraw = 1			
+			
          END
      15: BEGIN
             print, '<< Reference'
             mdi_il = mdi_il - iskip
             redraw =  1
             lw_msw = -1
+			
+			;Hiding reference lines
+			if (ds_swr gt 2) then begin
+				ds_swr = 1
+				ref_sw = 0
+			endif			
+			
          END
      16: BEGIN
             print, '< Reference'
             mdi_il = mdi_il - 1
             redraw =  1
             lw_msw = -1
+			
+			;Hiding reference lines
+			if (ds_swr gt 2) then begin
+				ds_swr = 1
+				ref_sw = 0
+			endif			
+			
          END
   	 17: BEGIN
   	        print, 'Jump to'
@@ -1644,6 +1932,13 @@ REPEAT BEGIN
       				mdi_il = mdi_tmp
       				redraw = 1
       				lw_msw = 1
+					
+					;Hiding reference lines
+					if (ds_swr gt 2) then begin
+						ds_swr = 1
+						ref_sw = 0
+					endif					
+					
       			endelse  			
   		   END
      18: BEGIN
@@ -1651,19 +1946,40 @@ REPEAT BEGIN
             mdi_il = mdi_il + 1
             redraw = 1
             lw_msw = 1
+			
+			;Hiding reference lines
+			if (ds_swr gt 2) then begin
+				ds_swr = 1
+				ref_sw = 0
+			endif			
+			
          END
      19: BEGIN
             print, '>> Reference'
             mdi_il = mdi_il + iskip
             redraw = 1 
-            lw_msw = 1         
+            lw_msw = 1
+
+			;Hiding reference lines
+			if (ds_swr gt 2) then begin
+				ds_swr = 1
+				ref_sw = 0
+			endif			
+			
          END
      20: BEGIN
             print, '< Control'
             mdi_ir = mdi_ir - 1
-            mdi_il = mdi_il - 1
+            mdi_il = mdi_il - 1 + dy_skp
             redraw =  1
-            rw_msw = -1                    
+            rw_msw = -1 
+
+			;Hiding reference lines
+			if (ds_swr gt 2) then begin
+				ds_swr = 1
+				ref_sw = 0
+			endif
+				
          END
      21: BEGIN
             print, 'Jump to'
@@ -1677,16 +1993,24 @@ REPEAT BEGIN
             if (tmpsize[2] ne 8) then begin
               print, 'No available MDI magnetogram.'
             endif else begin
-              mdi_ir = mdi_tmp
-              mdi_il = mdi_ir - 1
-              redraw =  1
-              rw_msw =  1
-              lw_msw = -1
+				mdi_ir = mdi_tmp
+				mdi_il = mdi_ir - 1 + dy_skp
+				redraw =  1
+				rw_msw =  1
+				lw_msw = -1
+			  
+				;Hiding reference lines
+				if (ds_swr gt 2) then begin
+					ds_swr = 1
+					ref_sw = 0
+				endif			  
+			  
             endelse       
          END
      22: BEGIN
             print, '> Control'
-            mdi_ir = mdi_ir + 1
+            mdi_ir = mdi_ir + 1			
+            mdi_il = mdi_il - 1 + dy_skp
             sv_sw = 1
             
             if (total(mdi_ir_vis eq mdi_ir) eq 0) then begin
@@ -1704,6 +2028,13 @@ REPEAT BEGIN
 ;              endif
               
             endif
+			
+			;Hiding reference lines
+            if (ds_swr gt 2) then begin
+				ds_swr = 1
+				ref_sw = 0
+			endif
+			
             
             redraw = 1
             rw_msw = 1          
@@ -1717,9 +2048,14 @@ REPEAT BEGIN
          END
      24: BEGIN
             print, 'Right Overlay'
-            ds_swr = ds_swr + 1
-            if (ds_swr gt 2) then ds_swr = 1
-            redraw = 1                    
+            ds_swr = ds_swr + 1			
+			;Hiding reference lines
+            if (ds_swr gt 2) then begin
+				ds_swr = 1
+				ref_sw = 0
+			endif
+            redraw = 1
+			
          END
     ENDCASE
     
