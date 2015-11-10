@@ -207,6 +207,12 @@ if instr eq 2 then date0 = '1992-04-21';  KPVT SPMG
 if instr eq 3 then date0 = '1997-01-01';  MDI
 if instr eq 4 then date0 = '2010-11-21';  HMI
 
+;First reference day for keeping track time easily
+if instr eq 1 then DayOff = julday(1,1,1970); KPVT 512
+if instr eq 2 then DayOff = julday(1,1,1970); KPVT SPMG
+if instr eq 3 then DayOff = julday(1,1,1993); MDI
+if instr eq 4 then DayOff = julday(1,1,2009); HMI
+
 if keyword_set(file1) then begin
   fn1 = file1 
 endif 
@@ -225,7 +231,6 @@ if (keyword_set(file1) and keyword_set(file2) )then begin
   NRs2 = NRs
   ARs2 = ARs
   mdi_i2 = min(PRs[where(PRs.mdi_i ne 0)].mdi_i)
-     
 endif
 
 if ( not keyword_set(file1) and not keyword_set(file2) )then begin  
@@ -259,8 +264,11 @@ REPEAT BEGIN
     ;Reading files
 
     ;Right Magnetogram
-    if (dbl_sw eq 1) then begin
-      dater = mdi_datestr( string( mdi_ir ), /inverse ) 
+    if (dbl_sw eq 1) then begin 
+      ;dater = mdi_datestr( string( mdi_ir ), /inverse )
+      caldat, mdi_ir + DayOff, Month, Day, Year
+      dater = strtrim(string(Year),2)+'-'+strtrim(string(Month,format='(I02)'),2)+'-'+strtrim(string(Day,format='(I02)'),2)
+      print, dater
       mgr = amj_file_read( dater, hdrr, instr)
       sr = size(mgr)
       mdi_ir = mdi_ir + 1
@@ -272,7 +280,9 @@ REPEAT BEGIN
     endelse
     
     ;Left Magnetogram
-    datel = mdi_datestr( string( mdi_il ), /inverse ) 
+    ;datel = mdi_datestr( string( mdi_il ), /inverse )
+    caldat, mdi_il + DayOff, Month, Day, Year
+    datel = strtrim(string(Year),2)+'-'+strtrim(string(Month,format='(I02)'),2)+'-'+strtrim(string(Day,format='(I02)'),2) 
     mgl = amj_file_read( datel, hdrl, instr)
     sl = size(mgl)
     mdi_il = mdi_il + 1
