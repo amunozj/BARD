@@ -181,7 +181,7 @@ END
 
 
 ;EDITS
-PRO amj_run_comp, file1=file1, file2 = file2, dbl = dbl
+PRO amj_run_comp, file1=file1, file2 = file2, dbl = dbl, instr
 
 dbl_sw = 0; Switch triggering the double overlay
 
@@ -195,13 +195,17 @@ incrmnt = 100
 max_max_sat = 2000
 min_max_sat = 0
 
-ARs = {ar, mdi_i: 0, date: '', labl: 0, clr: 0, indxp: '', indxn: '', fluxp: !values.f_nan, fluxn: !values.f_nan, areap:!values.f_nan, arean:!values.f_nan, $
+ARs = {ar, mdi_i: 0L, date: '', labl: 0, clr: 0, indxp: '', indxn: '', fluxp: !values.f_nan, fluxn: !values.f_nan, areap:!values.f_nan, arean:!values.f_nan, $
           fcn_ltp: !values.f_nan, fcn_lnp: !values.f_nan, dcenp: !values.f_nan, $ 
           fcn_ltn: !values.f_nan, fcn_lnn: !values.f_nan, dcenn: !values.f_nan, $
           fcenxpp: !values.f_nan, fcenypp: !values.f_nan, dcenpp: !values.f_nan, $
           fcenxpn: !values.f_nan, fcenypn: !values.f_nan, dcenpn: !values.f_nan, $               
           dis: !values.f_nan, tilt: !values.f_nan, lp: !values.f_nan, dm: !values.f_nan, qm: !values.f_nan}  
 
+if instr eq 1 then date0 = '1981-06-08';  KPVT 512
+if instr eq 2 then date0 = '1992-04-21';  KPVT SPMG
+if instr eq 3 then date0 = '1997-01-01';  MDI
+if instr eq 4 then date0 = '2010-11-21';  HMI
 
 if keyword_set(file1) then begin
   fn1 = file1 
@@ -253,9 +257,11 @@ REPEAT BEGIN
   tmp_sw = 0;
   repeat begin
     ;Reading files
+
+    ;Right Magnetogram
     if (dbl_sw eq 1) then begin
       dater = mdi_datestr( string( mdi_ir ), /inverse ) 
-      mgr = amj_mdi_archive( dater, i=1, hdrr )
+      mgr = amj_file_read( dater, hdrr, instr)
       sr = size(mgr)
       mdi_ir = mdi_ir + 1
       
@@ -265,9 +271,9 @@ REPEAT BEGIN
       tmp_sw = 1
     endelse
     
-      
+    ;Left Magnetogram
     datel = mdi_datestr( string( mdi_il ), /inverse ) 
-    mgl = amj_mdi_archive( datel, i=1, hdrl )    
+    mgl = amj_file_read( datel, hdrl, instr)
     sl = size(mgl)
     mdi_il = mdi_il + 1
     
@@ -290,15 +296,15 @@ REPEAT BEGIN
   ;Left Magnetogram
   ;Mixed Overlay
   if (ds_sw eq 1) then begin
-    amj_mgplot, mgl.img, mdi_il, PRs = PRs, NRs = NRs, ARs = ARs, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [2.0*pad, pad+plxy, pls+2.0*pad, pls+pad+plxy], title = datel, xrange = [min(mgl.x), max(mgl.x)] , yrange = [min(mgl.y), max(mgl.y)]    
+    amj_mgplot, mgl.img, mdi_il, instr, PRs = PRs, NRs = NRs, ARs = ARs, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [2.0*pad, pad+plxy, pls+2.0*pad, pls+pad+plxy], title = datel, xrange = [min(mgl.x), max(mgl.x)] , yrange = [min(mgl.y), max(mgl.y)]    
   endif
   ;PNR overlay
   if (ds_sw eq 2) then begin
-    amj_mgplot, mgl.img, mdi_il, PRs = PRs, NRs = NRs, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [2.0*pad, pad+plxy, pls+2.0*pad, pls+pad+plxy], title = datel, xrange = [min(mgl.x), max(mgl.x)] , yrange = [min(mgl.y), max(mgl.y)]        
+    amj_mgplot, mgl.img, mdi_il, instr, PRs = PRs, NRs = NRs, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [2.0*pad, pad+plxy, pls+2.0*pad, pls+pad+plxy], title = datel, xrange = [min(mgl.x), max(mgl.x)] , yrange = [min(mgl.y), max(mgl.y)]        
   endif
   ;No overlay
   if (ds_sw eq 3) then begin
-    amj_mgplot, mgl.img, mdi_il, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [2.0*pad, pad+plxy, pls+2.0*pad, pls+pad+plxy], title = datel, xrange = [min(mgl.x), max(mgl.x)] , yrange = [min(mgl.y), max(mgl.y)]        
+    amj_mgplot, mgl.img, mdi_il, instr, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [2.0*pad, pad+plxy, pls+2.0*pad, pls+pad+plxy], title = datel, xrange = [min(mgl.x), max(mgl.x)] , yrange = [min(mgl.y), max(mgl.y)]        
   endif
   
    
@@ -308,15 +314,15 @@ REPEAT BEGIN
   
     ;Mixed Overlay
     if (ds_sw eq 1) then begin
-      amj_mgplot, mgr.img, mdi_ir, PRs = PRs2, NRs = NRs2, ARs = ARs2, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [pls+4.0*pad, pad+plxy, 2.0*pls+4.0*pad, pls+pad+plxy], title = dater, xrange = [min(mgr.x), max(mgr.x)] , yrange = [min(mgr.y), max(mgr.y)]    
+      amj_mgplot, mgr.img, mdi_ir, instr, PRs = PRs2, NRs = NRs2, ARs = ARs2, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [pls+4.0*pad, pad+plxy, 2.0*pls+4.0*pad, pls+pad+plxy], title = dater, xrange = [min(mgr.x), max(mgr.x)] , yrange = [min(mgr.y), max(mgr.y)]    
     endif
     ;PNR overlay
     if (ds_sw eq 2) then begin
-      amj_mgplot, mgr.img, mdi_ir, PRs = PRs2, NRs = NRs2, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [pls+4.0*pad, pad+plxy, 2.0*pls+4.0*pad, pls+pad+plxy], title = dater, xrange = [min(mgr.x), max(mgr.x)] , yrange = [min(mgr.y), max(mgr.y)]    
+      amj_mgplot, mgr.img, mdi_ir, instr, PRs = PRs2, NRs = NRs2, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [pls+4.0*pad, pad+plxy, 2.0*pls+4.0*pad, pls+pad+plxy], title = dater, xrange = [min(mgr.x), max(mgr.x)] , yrange = [min(mgr.y), max(mgr.y)]    
     endif
     ;No overlay
     if (ds_sw eq 3) then begin
-      amj_mgplot, mgr.img, mdi_ir, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [pls+4.0*pad, pad+plxy, 2.0*pls+4.0*pad, pls+pad+plxy], title = dater, xrange = [min(mgr.x), max(mgr.x)] , yrange = [min(mgr.y), max(mgr.y)]    
+      amj_mgplot, mgr.img, mdi_ir, instr, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [pls+4.0*pad, pad+plxy, 2.0*pls+4.0*pad, pls+pad+plxy], title = dater, xrange = [min(mgr.x), max(mgr.x)] , yrange = [min(mgr.y), max(mgr.y)]    
     endif
     
   endif
@@ -383,7 +389,7 @@ REPEAT BEGIN
       			read, 'Enter date (e.g. 2001-08-31): ', date
       			mdi_tmp = long( mdi_datestr( date ) )
       			date_tmp = mdi_datestr( string( mdi_tmp ), /inverse ) 
-      			mg_tmp = amj_mdi_archive( date_tmp, i=1, hdrr )
+      			mg_tmp = amj_file_read( date_tmp, hdrr, instr )
       			
       			tmpsize = size(mg_tmp)
       			if (tmpsize[2] ne 8) then begin
@@ -425,7 +431,7 @@ REPEAT BEGIN
             read, 'Enter date (e.g. 2001-08-31): ', date
             mdi_tmp = long( mdi_datestr( date ) )
             date_tmp = mdi_datestr( string( mdi_tmp ), /inverse ) 
-            mg_tmp = amj_mdi_archive( date_tmp, i=1, hdrr )
+            mg_tmp = amj_file_read( date_tmp, hdrr, instr )
             
             tmpsize = size(mg_tmp)
             if (tmpsize[2] ne 8) then begin

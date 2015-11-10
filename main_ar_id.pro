@@ -1,5 +1,5 @@
 FUNCTION button_choice, pls, pad, plxy, plxx
-
+;test comment
 ftsz = 14
 
 ;Defining control (right) buttons
@@ -844,7 +844,7 @@ END
 
 
 ;EDITS
-PRO main_ar_id, start_date=start_date, continue = continue, restoref = restoref, pnr_file = pnr_file, labl = labl, buff = buff, nobuff = nobuff, kerth1=kerth1, kerth2=kerth2, arth=arth, eros=eros, dila=dila, dislim=dislim, ovrlim=ovrlim, ardislim1=ardislim1, exp_f=exp_f, exp_d=exp_d, exp_s=exp_s, MxFlxim=MxFlxim, instr = instr, rtrn_chk = rtrn_chk
+PRO main_ar_id, start_date=start_date, continue = continue, instr restoref = restoref, pnr_file = pnr_file, labl = labl, buff = buff, nobuff = nobuff, kerth1=kerth1, kerth2=kerth2, arth=arth, eros=eros, dila=dila, dislim=dislim, ovrlim=ovrlim, ardislim1=ardislim1, exp_f=exp_f, exp_d=exp_d, exp_s=exp_s, MxFlxim=MxFlxim, rtrn_chk = rtrn_chk
 
 device,retain=2
   
@@ -924,8 +924,6 @@ max_max_sat = 2000
 min_max_sat = 0
 
 prepnr_sw = 0; Pre-detection of PNRs
-
-
 
 
 if ( (not keyword_set( continue )) and (not keyword_set(restoref)) ) then begin
@@ -1065,69 +1063,68 @@ if ( n_elements(MxFlxim) ne 0 ) then ar_cnst.MxFlxim = MxFlxim
 ;Creating buffer if run is continued
 if (buff_sw eq 1) then begin
 
-  print, 'Creating buffer' 
+	print, 'Creating buffer' 
   
-  PRs_Big = PRs
-  NRs_Big = NRs
-  ARs_Big = ARs
+  	PRs_Big = PRs
+  	NRs_Big = NRs
+  	ARs_Big = ARs
 
-  if (n_elements(PRsFr) gt 0) or (n_elements(NRsFr) gt 0) then begin
-      PRsFr_Big = PRsFr
-      NRsFr_Big = NRsFr      
-  end
+  	if (n_elements(PRsFr) gt 0) or (n_elements(NRsFr) gt 0) then begin
+    	PRsFr_Big = PRsFr
+    	NRsFr_Big = NRsFr      
+  	end
 
-  ;Updating Variables that keep track of the limits in which the buffer need to be extended
-  bff_dn = mdi_ir - 2*bfr_lm
-  bff_up = mdi_ir - 2*bfr_lm + bfr_ds
+  	;Updating Variables that keep track of the limits in which the buffer need to be extended
+  	bff_dn = mdi_ir - 2*bfr_lm
+  	bff_up = mdi_ir - 2*bfr_lm + bfr_ds
 
-  mdi_bf_lm1 = bff_dn + bfr_lm
-  mdi_bf_lm2 = bff_up - bfr_lm
+  	mdi_bf_lm1 = bff_dn + bfr_lm
+  	mdi_bf_lm2 = bff_up - bfr_lm
+	  
+	;Updating buffer
+	tmp_in = where((PRs_Big.mdi_i le bff_up) and (PRs_Big.mdi_i ge bff_dn), nprs)
+	if (nprs ne 0) then begin
+		PRs = PRs_Big[tmp_in]          
+	endif else begin
+	    PRs = {rgn,  lnk_sw: 0,  mdi_i: 0, ar_lbl: 0, fr_lbl: 0L, date: '', indx:'', flux:!values.f_nan, area:!values.f_nan, fcn_lt:!values.f_nan, fcn_ln:!values.f_nan, dcen:!values.f_nan, fcenxp: !values.f_nan, fcenyp: !values.f_nan, dcenp:!values.f_nan, dm: !values.f_nan, qm: !values.f_nan}          
+	endelse
+	        
+	tmp_in = where((NRs_Big.mdi_i le bff_up) and (NRs_Big.mdi_i ge bff_dn), nprs)
+	if (nprs ne 0) then begin
+	    NRs = NRs_Big[tmp_in]          
+	endif else begin
+	    NRs = {rgn,  lnk_sw: 0,  mdi_i: 0, ar_lbl: 0, fr_lbl: 0L, date: '', indx:'', flux:!values.f_nan, area:!values.f_nan, fcn_lt:!values.f_nan, fcn_ln:!values.f_nan, dcen:!values.f_nan, fcenxp: !values.f_nan, fcenyp: !values.f_nan, dcenp:!values.f_nan, dm: !values.f_nan, qm: !values.f_nan}          
+	endelse
+	 
+	tmp_in = where((ARs_Big.mdi_i le bff_up) and (ARs_Big.mdi_i ge bff_dn), nprs)
+	if (nprs ne 0) then begin
+	    ARs = ARs_Big[tmp_in]          
+	endif else begin
+	    ARs = {ar, mdi_i: 0, date: '', labl: 0, clr: 0, indxp: '', indxn: '', fluxp: !values.f_nan, fluxn: !values.f_nan, areap:!values.f_nan, arean:!values.f_nan, $
+	              fcn_ltp: !values.f_nan, fcn_lnp: !values.f_nan, dcenp: !values.f_nan, $ 
+	              fcn_ltn: !values.f_nan, fcn_lnn: !values.f_nan, dcenn: !values.f_nan, $
+	              fcenxpp: !values.f_nan, fcenypp: !values.f_nan, dcenpp: !values.f_nan, $
+	              fcenxpn: !values.f_nan, fcenypn: !values.f_nan, dcenpn: !values.f_nan, $               
+	              dis: !values.f_nan, tilt: !values.f_nan, lp: !values.f_nan, dm: !values.f_nan, qm: !values.f_nan}  
+  	endelse
   
-  ;Updating buffer
-  tmp_in = where((PRs_Big.mdi_i le bff_up) and (PRs_Big.mdi_i ge bff_dn), nprs)
-  if (nprs ne 0) then begin
-    PRs = PRs_Big[tmp_in]          
-  endif else begin
-    PRs = {rgn,  lnk_sw: 0,  mdi_i: 0, ar_lbl: 0, fr_lbl: 0L, date: '', indx:'', flux:!values.f_nan, area:!values.f_nan, fcn_lt:!values.f_nan, fcn_ln:!values.f_nan, dcen:!values.f_nan, fcenxp: !values.f_nan, fcenyp: !values.f_nan, dcenp:!values.f_nan, dm: !values.f_nan, qm: !values.f_nan}          
-  endelse
-        
-  tmp_in = where((NRs_Big.mdi_i le bff_up) and (NRs_Big.mdi_i ge bff_dn), nprs)
-  if (nprs ne 0) then begin
-    NRs = NRs_Big[tmp_in]          
-  endif else begin
-    NRs = {rgn,  lnk_sw: 0,  mdi_i: 0, ar_lbl: 0, fr_lbl: 0L, date: '', indx:'', flux:!values.f_nan, area:!values.f_nan, fcn_lt:!values.f_nan, fcn_ln:!values.f_nan, dcen:!values.f_nan, fcenxp: !values.f_nan, fcenyp: !values.f_nan, dcenp:!values.f_nan, dm: !values.f_nan, qm: !values.f_nan}          
-  endelse
- 
-  tmp_in = where((ARs_Big.mdi_i le bff_up) and (ARs_Big.mdi_i ge bff_dn), nprs)
-  if (nprs ne 0) then begin
-    ARs = ARs_Big[tmp_in]          
-  endif else begin
-    ARs = {ar, mdi_i: 0, date: '', labl: 0, clr: 0, indxp: '', indxn: '', fluxp: !values.f_nan, fluxn: !values.f_nan, areap:!values.f_nan, arean:!values.f_nan, $
-              fcn_ltp: !values.f_nan, fcn_lnp: !values.f_nan, dcenp: !values.f_nan, $ 
-              fcn_ltn: !values.f_nan, fcn_lnn: !values.f_nan, dcenn: !values.f_nan, $
-              fcenxpp: !values.f_nan, fcenypp: !values.f_nan, dcenpp: !values.f_nan, $
-              fcenxpn: !values.f_nan, fcenypn: !values.f_nan, dcenpn: !values.f_nan, $               
-              dis: !values.f_nan, tilt: !values.f_nan, lp: !values.f_nan, dm: !values.f_nan, qm: !values.f_nan}  
-  endelse
-  
 
-  if (n_elements(PRsFr) gt 0) or (n_elements(NRsFr) gt 0) then begin
+  	if (n_elements(PRsFr) gt 0) or (n_elements(NRsFr) gt 0) then begin
   
-      tmp_in = where((PRsFr_Big.mdi_i le bff_up) and (PRsFr_Big.mdi_i ge bff_dn), nprs)
-      if (nprs ne 0) then begin
-        PRsFr = PRsFr_Big[tmp_in]          
-      endif else begin
-        PRsFr = {rgn,  lnk_sw: 0,  mdi_i: 0, ar_lbl: 0, fr_lbl: 0L, date: '', indx:'', flux:!values.f_nan, area:!values.f_nan, fcn_lt:!values.f_nan, fcn_ln:!values.f_nan, dcen:!values.f_nan, fcenxp: !values.f_nan, fcenyp: !values.f_nan, dcenp:!values.f_nan, dm: !values.f_nan, qm: !values.f_nan}          
-      endelse
+      	tmp_in = where((PRsFr_Big.mdi_i le bff_up) and (PRsFr_Big.mdi_i ge bff_dn), nprs)
+    	if (nprs ne 0) then begin
+        	PRsFr = PRsFr_Big[tmp_in]          
+      	endif else begin
+        	PRsFr = {rgn,  lnk_sw: 0,  mdi_i: 0, ar_lbl: 0, fr_lbl: 0L, date: '', indx:'', flux:!values.f_nan, area:!values.f_nan, fcn_lt:!values.f_nan, fcn_ln:!values.f_nan, dcen:!values.f_nan, fcenxp: !values.f_nan, fcenyp: !values.f_nan, dcenp:!values.f_nan, dm: !values.f_nan, qm: !values.f_nan}          
+      	endelse
             
-      tmp_in = where((NRsFr_Big.mdi_i le bff_up) and (NRsFr_Big.mdi_i ge bff_dn), nprs)
-      if (nprs ne 0) then begin
-        NRsFr = NRsFr_Big[tmp_in]          
-      endif else begin
-        NRsFr = {rgn,  lnk_sw: 0,  mdi_i: 0, ar_lbl: 0, fr_lbl: 0L, date: '', indx:'', flux:!values.f_nan, area:!values.f_nan, fcn_lt:!values.f_nan, fcn_ln:!values.f_nan, dcen:!values.f_nan, fcenxp: !values.f_nan, fcenyp: !values.f_nan, dcenp:!values.f_nan, dm: !values.f_nan, qm: !values.f_nan}          
-      endelse
-      
-   endif  
+      	tmp_in = where((NRsFr_Big.mdi_i le bff_up) and (NRsFr_Big.mdi_i ge bff_dn), nprs)
+      	if (nprs ne 0) then begin
+        	NRsFr = NRsFr_Big[tmp_in]          
+      	endif else begin
+        	NRsFr = {rgn,  lnk_sw: 0,  mdi_i: 0, ar_lbl: 0, fr_lbl: 0L, date: '', indx:'', flux:!values.f_nan, area:!values.f_nan, fcn_lt:!values.f_nan, fcn_ln:!values.f_nan, dcen:!values.f_nan, fcenxp: !values.f_nan, fcenyp: !values.f_nan, dcenp:!values.f_nan, dm: !values.f_nan, qm: !values.f_nan}          
+      	endelse  
+   	endif  
         
 endif
 
@@ -1136,20 +1133,20 @@ endif
 ;Using buffer for the first time
 if keyword_set(buff) and (buff_sw eq 0) then begin
   
-  buff_sw = 1
+	buff_sw = 1
    
-  print, 'Creating buffer' 
-  mdi_imin = min([min(PRs[where(PRs.mdi_i ne 0)].mdi_i),min(NRs[where(NRs.mdi_i ne 0)].mdi_i)])
-  mdi_imax = max([max(PRs[where(PRs.mdi_i ne 0)].mdi_i),max(NRs[where(NRs.mdi_i ne 0)].mdi_i)])  
+  	print, 'Creating buffer' 
+  	mdi_imin = min([min(PRs[where(PRs.mdi_i ne 0)].mdi_i),min(NRs[where(NRs.mdi_i ne 0)].mdi_i)])
+  	mdi_imax = max([max(PRs[where(PRs.mdi_i ne 0)].mdi_i),max(NRs[where(NRs.mdi_i ne 0)].mdi_i)])  
   
-  PRs_Big = PRs
-  NRs_Big = NRs
-  ARs_Big = ARs
+  	PRs_Big = PRs
+  	NRs_Big = NRs
+  	ARs_Big = ARs
   
-  if (n_elements(PRsFr) gt 0) or (n_elements(NRsFr) gt 0) then begin
-      PRsFr_Big = PRsFr
-      NRsFr_Big = NRsFr      
-  end
+  	if (n_elements(PRsFr) gt 0) or (n_elements(NRsFr) gt 0) then begin
+    	PRsFr_Big = PRsFr
+    	NRsFr_Big = NRsFr      
+  	end
   
   bff_dn = mdi_imin
   bff_up = mdi_imin+bfr_ds
@@ -1198,62 +1195,62 @@ lw_msw = -1
 
 REPEAT BEGIN
 
-  stat = 1   ;Variable that indicates the need for the program to end and save.
+	stat = 1   ;Variable that indicates the need for the program to end and save.
 
-  ;Detection Window
-  n_itr = 0
-  if rw_msw ne 0 then begin   
-    print, 'Looking for valid Working Window magnetogram'
-    repeat begin
-      
-      ;Reading files
-      caldat, mdi_ir+DayOff, Month, Day, Year
-      dater = strtrim(string(Year),2)+'-'+strtrim(string(Month,format='(I02)'),2)+'-'+strtrim(string(Day,format='(I02)'),2)
-      print, dater
-      mgr = amj_file_read( dater, hdrr, instr )
-          
-      sr = size(mgr)
-    
-      mdi_ir = mdi_ir + rw_msw
-      n_itr = n_itr+1
-      
-    endrep until ( (sr[2] eq 8) or (n_itr gt 365) )
-    
-    mdi_ir = mdi_ir - rw_msw
-    rw_msw = 0
-    
-    mdi_il = mdi_ir - 1 + dy_skp
-    lw_msw = -1
+	;Detection Window
+  	n_itr = 0
+  	if rw_msw ne 0 then begin   
+	    	print, 'Looking for valid Working Window magnetogram'
+	    repeat begin
+	      
+	    	;Reading files
+	      	caldat, mdi_ir+DayOff, Month, Day, Year
+	      	dater = strtrim(string(Year),2)+'-'+strtrim(string(Month,format='(I02)'),2)+'-'+strtrim(string(Day,format='(I02)'),2)
+	      	print, dater
+	      	mgr = amj_file_read( dater, hdrr, instr )
+	          
+	      	sr = size(mgr)
+	    
+	      	mdi_ir = mdi_ir + rw_msw
+	      	n_itr = n_itr+1
+	      
+	    endrep until ( (sr[2] eq 8) or (n_itr gt 365) )
+	    
+	    mdi_ir = mdi_ir - rw_msw
+	    rw_msw = 0
+	    
+	    mdi_il = mdi_ir - 1 + dy_skp
+	    lw_msw = -1
+	  
+  	endif
   
-  endif
-  
-  if (n_itr gt 365) then begin
-     stat = 0
-  endif
+  	if (n_itr gt 365) then begin
+    	stat = 0
+  	endif
   
   
-  ;Reference window
-  n_itr = 0
-  if lw_msw ne 0 then begin
-    print, 'Looking for valid Reference Window magnetogram' 
-    repeat begin
-      ;Reading files 
-      caldat, mdi_il+DayOff, Month, Day, Year
-      datel = strtrim(string(Year),2)+'-'+strtrim(string(Month,format='(I02)'),2)+'-'+strtrim(string(Day,format='(I02)'),2)
-      print, datel
-      mgl = amj_file_read( datel, hdrl, instr )
+  	;Reference window
+  	n_itr = 0
+  	if lw_msw ne 0 then begin
+    	print, 'Looking for valid Reference Window magnetogram' 
+    	repeat begin
+	      	;Reading files 
+	      	caldat, mdi_il+DayOff, Month, Day, Year
+	      	datel = strtrim(string(Year),2)+'-'+strtrim(string(Month,format='(I02)'),2)+'-'+strtrim(string(Day,format='(I02)'),2)
+	      	print, datel
+	      	mgl = amj_file_read( datel, hdrl, instr )
+	    
+	      	sl = size(mgl)
+	    
+	    	mdi_il = mdi_il + lw_msw
+	     	n_itr = n_itr+1
+	      
+    	endrep until ( (sl[2] eq 8) or (n_itr gt 365) )
     
-      sl = size(mgl)
-    
-      mdi_il = mdi_il + lw_msw
-      n_itr = n_itr+1
-      
-    endrep until ( (sl[2] eq 8) or (n_itr gt 365) )
-    
-    mdi_il = mdi_il - lw_msw
-    lw_msw = 0
+    	mdi_il = mdi_il - lw_msw
+    	lw_msw = 0
 
-  endif
+  	endif
       
   if (n_itr gt 365) then begin
      stat = 0
@@ -1341,12 +1338,12 @@ REPEAT BEGIN
 
                        
 
-  REPEAT BEGIN 
-    redraw = 0
-    print, 'Please make a choice'
-     ;ltmpcs = 13
-     ;CASE (tmpcs) of ;button_choice(pls, pad, plxy, plxx) OF
-   CASE button_choice(pls, pad, plxy, plxx) OF
+  	REPEAT BEGIN 
+    	redraw = 0
+    	print, 'Please make a choice'
+     	;ltmpcs = 13
+    	 ;CASE (tmpcs) of ;button_choice(pls, pad, plxy, plxx) OF
+   		CASE button_choice(pls, pad, plxy, plxx) OF
       0: BEGIN
             print, 'Please click inside one of the buttons'
           
