@@ -580,10 +580,12 @@ endelse
 
 
 if keyword_set(track) then begin
-
+    
+    print, 'Tracking Backward...'
     ;Tracking Backward
     amj_ar_sngl_trck, CRD_in, mdi_i, lbl, Nwar, PRs, NRs, ARs, -1, date, ar_cnst=ar_cnst
 
+    print, 'Tracking Forward...'
     ;Tracking Forward
     amj_ar_sngl_trck, CRD_in, mdi_i, lbl, Nwar, PRs, NRs, ARs, 1, date, ar_cnst=ar_cnst
 

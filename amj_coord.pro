@@ -50,6 +50,7 @@ pro amj_coord, image_in, hdr_in, CRD_out, instr, seg_const=seg_const, display=di
 ;   2015/09/16:  Andres Munoz-Jaramillo:   Adapted to work with different instruments
 ;-
 
+print, 'Updating supporting variables'
 
 ;define the usage
 if n_params() lt 4 then begin
@@ -66,7 +67,7 @@ seg_const_def={k_sig:15.0, valid_range:[-20000.,20000.], deg_lim:70.0}
 
 if not keyword_set(seg_const) then begin
     seg_const=seg_const_def
-endif
+endif 
 
 ;
 ;set the display window size and display thresholds ----------------------------------------------------------
@@ -151,7 +152,7 @@ endelse
 
 
 
-;
+print, 'Calculating heliospheric coordinates...'
 ;Calculation of heliospheric coordinates---------------------------------------------------------------------------
 
 
@@ -247,6 +248,7 @@ if keyword_set(prt) then begin
 endif
 imgs0=im
 
+print, 'Correcting LOS field...'
 ;Correct line of sight magnetic field assuming field is radial
 
 ;Observers' unit vector
@@ -277,7 +279,7 @@ endif
 
 ;
 ;Calculate the Element of Area--------------------------------------------------------
-;
+print, 'Calculating element of Area...'
 
 ;Converting to Cartesian
 Xar = cos(Lath*!dtor)*cos(Lonh*!dtor)
@@ -330,6 +332,7 @@ endif
 ;print, junk
 
 ;Calculating flux---------------------------------------------
+print, 'Calculating magnetic flux...'
 
 mgnt_flx = mgnt_ar*im
 
