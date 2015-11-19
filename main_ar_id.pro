@@ -894,6 +894,10 @@ if keyword_set(rtrn_chk) then begin
 	dy_skp  = 24
 endif
 
+;CRD switch that is used to trigger a recalculation of magnetic fluxes and areas
+CRD_mdi_i = 0
+
+
 ;Reference longitude and latitude
 ref_sw = 0   			;Switch that turns on the reference lines.
 Lonhrl = !values.f_nan	;Longitude of the reference line in the left magnetogram
@@ -1266,7 +1270,13 @@ REPEAT BEGIN
   
       ;Performing detection of possitive and negative regions
       if ( (detpn_sw eq 1) ) then begin
-        amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const;, /disp		
+
+
+      	if CRD_mdi_i ne mdi_ir then begin
+        	amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const;, /disp
+        	CRD_mdi_i = mdi_ir
+        end
+
         amj_pnr_dt, CRD, mdi_ir, PRs, NRs, instr, seg_const=seg_const;, /disp,/not_merge, /detdisp
 
         detpn_sw = 0   
@@ -1280,7 +1290,11 @@ REPEAT BEGIN
     
 ;      if ( (detar_sw eq 1) and ( n_prs gt 0 ) and ( n_nrs gt 0 ) and ( n_ars eq 0 ) ) then begin
       if ( (detar_sw eq 1) and ( n_prs gt 0 ) and ( n_nrs gt 0 ) ) then begin
-        amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const                       
+
+      	if CRD_mdi_i ne mdi_ir then begin
+        	amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const;, /disp
+        	CRD_mdi_i = mdi_ir
+        end                       
         amj_ar_dt_track_dr, CRD, mdi_ir, lbl, PRs, NRs, ARs, mgr.date, ar_cnst=ar_cnst, seg_const=seg_const;,/display;, /bck_trck;, /display
         detar_sw = 0
         mdi_ir_vis = [mdi_ir_vis,mdi_ir]
@@ -1479,8 +1493,12 @@ REPEAT BEGIN
                     endelse
                     
                     ;Adding region to list, tracking, and updating PNR indices
-					print, 'Creating'
-                    amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const                                           
+			      	if CRD_mdi_i ne mdi_ir then begin
+
+			        	amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const;, /disp
+			        	CRD_mdi_i = mdi_ir
+			        end
+					print, 'Creating Region'			                                                  
                     amj_ar_manual, CRD, mdi_ir, inp, inn, lbl, PRs, NRs, ARs, mgr.date, ar_cnst=ar_cnst, seg_const=seg_const
                     redraw = 1    
                     und_sw = 1                    
@@ -1539,8 +1557,11 @@ REPEAT BEGIN
                     endelse
                     
                     ;Adding region to list, tracking, and updating PNR indices
-					print, 'Creating and Tracking'
-                    amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const                                           
+			      	if CRD_mdi_i ne mdi_ir then begin
+			        	amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const;, /disp
+			        	CRD_mdi_i = mdi_ir
+			        end
+			        print, 'Creating Region'                                           
                     amj_ar_manual, CRD, mdi_ir, inp, inn, lbl, PRs, NRs, ARs, mgr.date, ar_cnst=ar_cnst, seg_const=seg_const, /track
                     redraw = 1    
                     und_sw = 1                    
@@ -1643,9 +1664,12 @@ REPEAT BEGIN
                       endelse
                       
                       ;Adding region to list and updating PNR indices
+				    	if CRD_mdi_i ne mdi_ir then begin
+				        	amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const;, /disp
+				        	CRD_mdi_i = mdi_ir
+				        end                                           
 					  print, 'Merging'
-                      amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const                                           
-                      amj_pnr_merge, CRD, mdi_ir, inar, innar, PRs, ARs, pl_sw, date
+                      amj_pnr_merge, CRD, mdi_ir, inar, innar, PRs, ARs, pl_sw, mgr.date
 
 
                       redraw = 1    
@@ -1674,7 +1698,11 @@ REPEAT BEGIN
                       endelse
                       
                       ;Adding region to list and updating PNR indices
-                      amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const                                           
+				      	if CRD_mdi_i ne mdi_ir then begin
+				        	amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const;, /disp
+				        	CRD_mdi_i = mdi_ir
+				        end         
+					  print, 'Merging'
                       amj_pnr_merge, CRD, mdi_ir, inar, innar, NRs, ARs, pl_sw, date
 
 
@@ -1774,8 +1802,12 @@ REPEAT BEGIN
           			  tmp_seg_const.dis_lim = 2
                   tmp_seg_const.ovr_lim = 0.7
           			  ;tmp_seg_const.dila_size=5
-          			  
-                  amj_coord, tmp_im, hdrr, CRD              
+
+			      	if CRD_mdi_i ne mdi_ir then begin
+			        	amj_coord, tmp_im, hdrr, CRD, instr, seg_const=tmp_seg_const;, /disp
+			        	CRD_mdi_i = mdi_ir
+			        end          			               
+			  	  print, 'Detecting fragmets...'
                   amj_pnr_dt, CRD, mdi_ir, tmp_PRs, tmp_NRs, seg_const=tmp_seg_const, pnr_lbl = -999;,/not_merge;, /detdisp
 
               endif
@@ -2071,6 +2103,8 @@ REPEAT BEGIN
 ;        endelse 
       
         if ( ((mdi_ir mod sv_bfr) eq 0) and (sv_sw eq 1) ) then begin
+
+        	print, 'Saving...'
             spawn, '\cp -f Ar_id_Save0.sav Ar_id_Save_Bckp.sav'
                   
             if (n_elements(PRsFr) gt 0) or (n_elements(NRsFr) gt 0) then begin         
@@ -2221,6 +2255,7 @@ REPEAT BEGIN
         endif
         
         ;Saving file
+        print, 'Saving...'        
         if (n_elements(PRsFr) gt 0) or (n_elements(NRsFr) gt 0) then begin
             SAVE, ARs, PRs, NRs, PRsFr, NRsFr, mdi_il, mdi_ir, lbl, prepnr_sw, mdi_ir_vis, buff_sw, instr, FILENAME = 'Ar_id_Save0.sav'          
         endif else begin  
@@ -2315,6 +2350,7 @@ if (buff_sw eq 1) then begin
 endif
 
 ;Saving file
+print, 'Saving...'
 if (n_elements(PRsFr) gt 0) or (n_elements(NRsFr) gt 0) then begin
     SAVE, ARs, PRs, NRs, PRsFr, NRsFr, mdi_il, mdi_ir, lbl, prepnr_sw, mdi_ir_vis, buff_sw, instr, FILENAME = 'Ar_id_Save0.sav'
 endif else begin
