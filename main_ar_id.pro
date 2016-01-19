@@ -844,7 +844,7 @@ END
 
 
 ;EDITS
-PRO main_ar_id, start_date=start_date, continue = continue, instr restoref = restoref, pnr_file = pnr_file, labl = labl, buff = buff, nobuff = nobuff, kerth1=kerth1, kerth2=kerth2, arth=arth, eros=eros, dila=dila, dislim=dislim, ovrlim=ovrlim, ardislim1=ardislim1, exp_f=exp_f, exp_d=exp_d, exp_s=exp_s, MxFlxim=MxFlxim, rtrn_chk = rtrn_chk
+PRO main_ar_id, start_date=start_date, continue = continue, instr, restoref = restoref, pnr_file = pnr_file, pre_coord = pre_coord, labl = labl, buff = buff, nobuff = nobuff, kerth1=kerth1, kerth2=kerth2, arth=arth, eros=eros, dila=dila, dislim=dislim, ovrlim=ovrlim, ardislim1=ardislim1, exp_f=exp_f, exp_d=exp_d, exp_s=exp_s, MxFlxim=MxFlxim, rtrn_chk = rtrn_chk
 
 device,retain=2
   
@@ -1273,7 +1273,11 @@ REPEAT BEGIN
 
 
       	if CRD_mdi_i ne mdi_ir then begin
-        	amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const;, /disp
+      		if keyword_set(pre_coord) then begin
+      			amj_pre_coord_read, instr, mdi_ir, CRD
+      		endif else begin
+      			amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const;, /disp
+      		endelse
         	CRD_mdi_i = mdi_ir
         end
 
@@ -1292,7 +1296,11 @@ REPEAT BEGIN
       if ( (detar_sw eq 1) and ( n_prs gt 0 ) and ( n_nrs gt 0 ) ) then begin
 
       	if CRD_mdi_i ne mdi_ir then begin
-        	amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const;, /disp
+      		if keyword_set(pre_coord) then begin
+      			amj_pre_coord_read, instr, mdi_ir, CRD
+      		endif else begin
+      			amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const;, /disp
+      		endelse
         	CRD_mdi_i = mdi_ir
         end                       
         amj_ar_dt_track_dr, CRD, mdi_ir, lbl, PRs, NRs, ARs, mgr.date, ar_cnst=ar_cnst, seg_const=seg_const;,/display;, /bck_trck;, /display
@@ -1494,8 +1502,11 @@ REPEAT BEGIN
                     
                     ;Adding region to list, tracking, and updating PNR indices
 			      	if CRD_mdi_i ne mdi_ir then begin
-
-			        	amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const;, /disp
+			      		if keyword_set(pre_coord) then begin
+			      			amj_pre_coord_read, instr, mdi_ir, CRD
+			      		endif else begin
+			      			amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const;, /disp
+			      		endelse
 			        	CRD_mdi_i = mdi_ir
 			        end
 					print, 'Creating Region'			                                                  
@@ -1558,7 +1569,11 @@ REPEAT BEGIN
                     
                     ;Adding region to list, tracking, and updating PNR indices
 			      	if CRD_mdi_i ne mdi_ir then begin
-			        	amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const;, /disp
+			      		if keyword_set(pre_coord) then begin
+			      			amj_pre_coord_read, instr, mdi_ir, CRD
+			      		endif else begin
+			      			amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const;, /disp
+			      		endelse
 			        	CRD_mdi_i = mdi_ir
 			        end
 			        print, 'Creating Region'                                           
@@ -1654,26 +1669,30 @@ REPEAT BEGIN
                       
                     endif else begin
                     
-                      ;Choosing the region that will remain based on which of them belongs to an active region
-                      if (PRs[r1_in].lnk_sw eq 1) then begin
-                        inar  = r1_in
-                        innar = r2_in
-                      endif else begin
-                        inar = r2_in
-                        innar = r1_in
-                      endelse
+						;Choosing the region that will remain based on which of them belongs to an active region
+						if (PRs[r1_in].lnk_sw eq 1) then begin
+						inar  = r1_in
+						innar = r2_in
+						endif else begin
+						inar = r2_in
+						innar = r1_in
+						endelse
                       
                       ;Adding region to list and updating PNR indices
-				    	if CRD_mdi_i ne mdi_ir then begin
-				        	amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const;, /disp
+				      	if CRD_mdi_i ne mdi_ir then begin
+				      		if keyword_set(pre_coord) then begin
+				      			amj_pre_coord_read, instr, mdi_ir, CRD
+				      		endif else begin
+				      			amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const;, /disp
+				      		endelse
 				        	CRD_mdi_i = mdi_ir
 				        end                                           
-					  print, 'Merging'
-                      amj_pnr_merge, CRD, mdi_ir, inar, innar, PRs, ARs, pl_sw, mgr.date
+						print, 'Merging'
+						amj_pnr_merge, CRD, mdi_ir, inar, innar, PRs, ARs, pl_sw, mgr.date
 
 
-                      redraw = 1    
-                      und_sw = 1
+						redraw = 1    
+						und_sw = 1
                       
                     endelse
                   
@@ -1688,26 +1707,30 @@ REPEAT BEGIN
                       
                     endif else begin
                     
-                      ;Choosing the region that will remain based on which of them belongs to an active region
-                      if (NRs[r1_in].lnk_sw eq 1) then begin
-                        inar  = r1_in
-                        innar = r2_in
-                      endif else begin
-                        inar = r2_in
-                        innar = r1_in
-                      endelse
+						;Choosing the region that will remain based on which of them belongs to an active region
+						if (NRs[r1_in].lnk_sw eq 1) then begin
+						inar  = r1_in
+						innar = r2_in
+						endif else begin
+						inar = r2_in
+						innar = r1_in
+						endelse
                       
                       ;Adding region to list and updating PNR indices
 				      	if CRD_mdi_i ne mdi_ir then begin
-				        	amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const;, /disp
+				      		if keyword_set(pre_coord) then begin
+				      			amj_pre_coord_read, instr, mdi_ir, CRD
+				      		endif else begin
+				      			amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const;, /disp
+				      		endelse
 				        	CRD_mdi_i = mdi_ir
-				        end         
-					  print, 'Merging'
-                      amj_pnr_merge, CRD, mdi_ir, inar, innar, NRs, ARs, pl_sw, date
+				        end        
+						print, 'Merging'
+						amj_pnr_merge, CRD, mdi_ir, inar, innar, NRs, ARs, pl_sw, date
 
 
-                      redraw = 1    
-                      und_sw = 1
+						redraw = 1    
+						und_sw = 1
                       
                     endelse
                     
@@ -1739,119 +1762,120 @@ REPEAT BEGIN
             amj_pick_pnr, mdi_ir, PRs, NRs, r1_in, r1_sw, pls, pad, plxy, plxx, d_zoom
 
             if (r1_in eq -2) then begin
-              print, 'Cancelled. No PNR was fragmented'
+				print, 'Cancelled. No PNR was fragmented'
             endif else begin
 			
-			  print, 'Fragmenting'
-              prfrg_sw = 0 ;Swiths that indicates that a prefragmented set of regions has been found
+				print, 'Fragmenting'
+				prfrg_sw = 0 ;Swiths that indicates that a prefragmented set of regions has been found
 
-              ;Creating temporary PNR arrays
-              tmp_PRs = {rgn,  lnk_sw: 0,  mdi_i: 0L, ar_lbl: 0, fr_lbl: 0L, date: '', indx:'', flux:!values.f_nan, area:!values.f_nan, fcn_lt:!values.f_nan, fcn_ln:!values.f_nan, dcen:!values.f_nan, fcenxp: !values.f_nan, fcenyp: !values.f_nan, dcenp:!values.f_nan, dm: !values.f_nan, qm: !values.f_nan}    
-              tmp_NRs = tmp_PRs
+				;Creating temporary PNR arrays
+				tmp_PRs = {rgn,  lnk_sw: 0,  mdi_i: 0L, ar_lbl: 0, fr_lbl: 0L, date: '', indx:'', flux:!values.f_nan, area:!values.f_nan, fcn_lt:!values.f_nan, fcn_ln:!values.f_nan, dcen:!values.f_nan, fcenxp: !values.f_nan, fcenyp: !values.f_nan, dcenp:!values.f_nan, dm: !values.f_nan, qm: !values.f_nan}    
+				tmp_NRs = tmp_PRs
 
-                    
-              ;Positive regions                    
-              if (r1_sw gt 0) and (n_elements(PRsFr) gt 0) then begin
-                  
-                  ;Finding if there are associated pre-fragmented regions that day
-                  frin = where((PRsFr.mdi_i eq PRs[r1_in].mdi_i) and (PRsFr.fr_lbl eq PRs[r1_in].fr_lbl), n_fr)
-                  
-                  if n_fr gt 0 then begin
-                    
-                      tmp_PRs = [tmp_PRs, PRsFr[frin]]
-                      prfrg_sw = 1
-                    
-                  endif                
-                
-              endif
+				    
+				;Positive regions                    
+				if (r1_sw gt 0) and (n_elements(PRsFr) gt 0) then begin
+				  
+					;Finding if there are associated pre-fragmented regions that day
+					frin = where((PRsFr.mdi_i eq PRs[r1_in].mdi_i) and (PRsFr.fr_lbl eq PRs[r1_in].fr_lbl), n_fr)
 
-              ;Negative regions                    
-              if (r1_sw lt 0) and (n_elements(NRsFr) gt 0) then begin
-                  
-                  ;Finding if there are associated pre-fragmented regions that day
-                  frin = where((NRsFr.mdi_i eq NRs[r1_in].mdi_i) and (NRsFr.fr_lbl eq NRs[r1_in].fr_lbl), n_fr)
-                  
-                  if n_fr gt 0 then begin
-                    
-                       tmp_NRs = [tmp_NRs, NRsFr[frin]]
-                       prfrg_sw = 1
-                    
-                  endif                
-                
-              endif              
-                                                    
-              if (prfrg_sw eq 0) then begin   
-                          
-                  ;Extracting necessary pixels
-                  if (r1_sw gt 0) then begin
-                    ex_in = long(strsplit(PRs[r1_in].indx,/extract))
-                  endif else begin
-                    ex_in = long(strsplit(NRs[r1_in].indx,/extract))
-                  endelse
-                  
-                  ;Creating temporary image
-                  tmp_im = mgr.img*0.0
-                  tmp_im[ex_in] = mgr.img[ex_in]
-                  
-                  
-                  ;Creating temporary seg_const
-                  tmp_seg_const = seg_const
-                  tmp_seg_const.npssu = 2
-          			  tmp_seg_const.ker_th=200
-          			  tmp_seg_const.ker_th2=150
-          			  tmp_seg_const.dis_lim = 2
-                  tmp_seg_const.ovr_lim = 0.7
-          			  ;tmp_seg_const.dila_size=5
+					if n_fr gt 0 then begin
 
-			      	if CRD_mdi_i ne mdi_ir then begin
-			        	amj_coord, tmp_im, hdrr, CRD, instr, seg_const=tmp_seg_const;, /disp
-			        	CRD_mdi_i = mdi_ir
-			        end          			               
-			  	  print, 'Detecting fragmets...'
-                  amj_pnr_dt, CRD, mdi_ir, tmp_PRs, tmp_NRs, seg_const=tmp_seg_const, pnr_lbl = -999;,/not_merge;, /detdisp
+						tmp_PRs = [tmp_PRs, PRsFr[frin]]
+						prfrg_sw = 1
 
-              endif
-              
-              
-              if ( ((n_elements(tmp_PRs) gt 1) and (r1_sw gt 0)) or ((n_elements(tmp_NRs) gt 1) and (r1_sw lt 0)) ) then begin
+					endif                
 
-                  ;Positive regions
-                  if (r1_sw gt 0) then begin
-                    
-                    ;Removing fragmented region and adding the new ones in its place
-                    first = 0
-                    last = N_Elements(PRs)-1
-                    CASE r1_in OF
-                      first: PRs = [tmp_PRs, PRs[1:*]]
-                      last:  PRs = [PRs[first:last-1], tmp_PRs[1:*]]
-                      ELSE:  PRs = [PRs[first:r1_in-1], tmp_PRs[1:*], PRs[r1_in+1:last] ]
-                    ENDCASE
-                    
-                  endif else begin
-                    
-                    ;Removing fragmented region and adding the new ones in its place
-                    first = 0
-                    last = N_Elements(NRs)-1
-                    CASE r1_in OF
-                      first: NRs = [tmp_NRs, NRs[1:*]]
-                      last:  NRs = [NRs[first:last-1], tmp_NRs[1:*]]
-                      ELSE:  NRs = [NRs[first:r1_in-1], tmp_NRs[1:*], NRs[r1_in+1:last] ]
-                    ENDCASE
-                    
-                  endelse
-                  
-                  und_sw = 1  
-                  redraw = 1
-                               
-              endif else begin
-                
-                  print, 'Cancelled. Region could not be fragmented'
-                
-              endelse
-                                  
-    
+				endif
 
-                                   
+				;Negative regions                    
+				if (r1_sw lt 0) and (n_elements(NRsFr) gt 0) then begin
+				  
+					;Finding if there are associated pre-fragmented regions that day
+					frin = where((NRsFr.mdi_i eq NRs[r1_in].mdi_i) and (NRsFr.fr_lbl eq NRs[r1_in].fr_lbl), n_fr)
+
+					if n_fr gt 0 then begin
+
+						tmp_NRs = [tmp_NRs, NRsFr[frin]]
+						prfrg_sw = 1
+
+					endif                
+
+				endif              
+				                                    
+				if (prfrg_sw eq 0) then begin   
+	                          
+					;Extracting necessary pixels
+					if (r1_sw gt 0) then begin
+						ex_in = long(strsplit(PRs[r1_in].indx,/extract))
+					endif else begin
+						ex_in = long(strsplit(NRs[r1_in].indx,/extract))
+					endelse
+
+					;Creating temporary image
+					tmp_im = mgr.img*0.0
+					tmp_im[ex_in] = mgr.img[ex_in]
+
+
+					;Creating temporary seg_const
+					tmp_seg_const = seg_const
+					tmp_seg_const.npssu = 2
+					tmp_seg_const.ker_th=200
+					tmp_seg_const.ker_th2=150
+					tmp_seg_const.dis_lim = 2
+					tmp_seg_const.ovr_lim = 0.7
+					;tmp_seg_const.dila_size=5
+
+					if CRD_mdi_i ne mdi_ir then begin
+						if keyword_set(pre_coord) then begin
+							amj_pre_coord_read, instr, mdi_ir, CRD
+						endif else begin
+							amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const;, /disp
+						endelse
+						CRD_mdi_i = mdi_ir
+					end          			               
+					print, 'Detecting fragmets...'
+					amj_pnr_dt, CRD, mdi_ir, tmp_PRs, tmp_NRs, seg_const=tmp_seg_const, pnr_lbl = -999;,/not_merge;, /detdisp
+
+	            endif
+	              
+	              
+				if ( ((n_elements(tmp_PRs) gt 1) and (r1_sw gt 0)) or ((n_elements(tmp_NRs) gt 1) and (r1_sw lt 0)) ) then begin
+
+					;Positive regions
+					if (r1_sw gt 0) then begin
+
+					;Removing fragmented region and adding the new ones in its place
+					first = 0
+					last = N_Elements(PRs)-1
+					CASE r1_in OF
+						first: PRs = [tmp_PRs, PRs[1:*]]
+						last:  PRs = [PRs[first:last-1], tmp_PRs[1:*]]
+						ELSE:  PRs = [PRs[first:r1_in-1], tmp_PRs[1:*], PRs[r1_in+1:last] ]
+					ENDCASE
+
+					endif else begin
+
+						;Removing fragmented region and adding the new ones in its place
+						first = 0
+						last = N_Elements(NRs)-1
+						CASE r1_in OF
+							first: NRs = [tmp_NRs, NRs[1:*]]
+							last:  NRs = [NRs[first:last-1], tmp_NRs[1:*]]
+							ELSE:  NRs = [NRs[first:r1_in-1], tmp_NRs[1:*], NRs[r1_in+1:last] ]
+						ENDCASE
+
+					endelse
+
+					und_sw = 1  
+					redraw = 1
+				               
+				endif else begin
+
+				  print, 'Cancelled. Region could not be fragmented'
+
+				endelse
+
             endelse  
           
          END
