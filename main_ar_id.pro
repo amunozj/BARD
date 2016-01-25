@@ -1893,8 +1893,12 @@ REPEAT BEGIN
 			;pro zaw_ar_flux_balance, CRD_in, mdi_i, ARs, n_ars, date, ar_cnst=ar_cnst, seg_const=seg_const, display=display, prt=prt, info=info, sqs_nm = sqs_nm, pltn = pltn
 			ar_in = where((ARs.mdi_i eq mdi_ir), n_ars)
 			print, n_ars
-			amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const 
-			zaw_ar_flux_balance, CRD, mdi_i, ARs, n_ars, date, ar_cnst = ar_cnst, seg_const = seg_const
+			if (n_ars ne 0) then begin
+				amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const 
+				zaw_ar_flux_bal, CRD, mdi_i, ARs, ar_in, n_ars, dater, ar_cnst = ar_cnst, seg_const = seg_const
+			endif else begin
+				print, 'No valid ARs in call to zaw_ar_flux_balance.pro'
+			endelse			
 
 			redraw = 1
 		END
