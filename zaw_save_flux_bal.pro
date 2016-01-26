@@ -1,3 +1,16 @@
+;-------------------------------------------------------------------------------------------------------------------------------
+; NAME:       zaw_save_flux_bal
+;
+; PURPOSE:	Inputs a save file and operates on each day, balancing flux with zaw_ar_flux_bal
+;
+; CALLING SEQUENCE: zaw_ar_flx_balance, instr, input_file
+;
+; INPUTS:		instr 				Instrument of save file for default settings
+;				input_file			Location of file to be processed
+;
+; OPTIONAL INPUTS: 0_fldr			Location to output the save file. Must be in format './directory/'
+;
+;-------------------------------------------------------------------------------------------------------------------------------
 PRO zaw_save_flux_bal, instr, input_file, O_fldr = O_fldr
 
 ;Does not plot onscreen
@@ -52,8 +65,6 @@ output_file = input_file
 mdi_ir  = min([min(PRs[where(PRs.mdi_i ne 0)].mdi_i),min(NRs[where(NRs.mdi_i ne 0)].mdi_i)])
 mdi_if  = max([max(PRs[where(PRs.mdi_i ne 0)].mdi_i),max(NRs[where(NRs.mdi_i ne 0)].mdi_i)])
 
-DayOff = julday(1,1,1970);  First reference day for keeping track time easily
-
 caldat, mdi_ir+DayOff, Month, Day, Year
 start_date = strtrim(string(Year),2)+'-'+strtrim(string(Month,format='(I02)'),2)+'-'+strtrim(string(Day,format='(I02)'),2)
 
@@ -66,7 +77,7 @@ while (mdi_ir le mdi_if) do begin
 repeat begin
     caldat, mdi_ir+DayOff, Month, Day, Year
 	dater = strtrim(string(Year),2)+'-'+strtrim(string(Month,format='(I02)'),2)+'-'+strtrim(string(Day,format='(I02)'),2)
-	print, dater
+	print, 'Balancing ' + dater
 	mgr = amj_file_read( dater, hdrr, instr )
 	          
 	sr = size(mgr)
@@ -76,21 +87,21 @@ endrep until ( (sr[2] eq 8) or (mdi_ir gt mdi_if) )
 mdi_ir = mdi_ir - 1 		;to reset day back to normal
 
 ar_in = where((ARs.mdi_i eq mdi_ir), n_ars)
-print, n_ars
 if (n_ars ne 0) then begin
 	amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const 
 	zaw_ar_flux_bal, CRD, mdi_i, ARs, ar_in, n_ars, dater, ar_cnst = ar_cnst, seg_const = seg_const
 endif
 mdi_ir = mdi_ir + 1
 
-end while 
+endwhile 
 
 if keyword_set(O_fldr) then begin
-      output_fn = O_fldr + 'AR_' + start_date + '_to_' + end_date + '_flux_bal.sav'
+      output_fn = O_fldr + 'Ar_' + start_date + '_to_' + end_date + '_flux_bal.sav'
 endif else begin
-	output_fn = 'AR_' + start_date + '_to_' + end_date + '_flux_bal.sav'
+	output_fn = 'Ar_' + start_date + '_to_' + end_date + '_flux_bal.sav'
 endelse
 
-SAVE, ARs, PRs, NRs, PRsFr, NRsFr, mdi_il, mdi_ir, lbl, prepnr_sw, mdi_ir_vis, buff_sw, instr, FILENAME = output_file
-
+print, "Saving " + output_fn
+SAVE, ARs, PRs, NRs, PRsFr, NRsFr, mdi_il, mdi_ir, lbl, prepnr_sw, mdi_ir_vis, buff_sw, instr, FILENAME = output_fn
+print, "Saved"
 END

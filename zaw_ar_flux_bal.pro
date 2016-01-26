@@ -1,12 +1,21 @@
 ;-------------------------------------------------------------------------------------------------------------------------------
-; NAME:       zaw_ar_flx_balance
+; NAME:       zaw_ar_flx_bal
 ;
-; PURPOSE:      Takes the active regions (ARs) as parameters and balances the flx by growing the regions in an
+; PURPOSE:      Takes the active regions (ARs) as parameters and balances the flux by growing the regions in an
 ;           iterative fashion.
 ;
-; CALLING SEQUENCE: zaw_ar_flx_balance,  
+; CALLING SEQUENCE: zaw_ar_flux_bal, CRD, mdi_i, ARs, ar_in, n_ars, dater, ar_cnst = ar_cnst, seg_const = seg_const
 ;
+; INPUTS:           CRD_in        A structure holding the original and corrected images, as well as the calculated
+;                                 heliographic coordinates
+;                   mdi_i         Mission day used to tag regions
+;                   ARs           AR structure containing active regions for all days
+;                   ar_in         Specific active regions of interest
+;                   n_ars         Number of detected active regions
+;                   date          Date of interest
 ;
+; OPTIONAL INPUTS:  ar_cnst       Holds parameters relating to active region formulation
+;                   seg_const     Holds parameters relating to pnr detection
 ;
 ;-------------------------------------------------------------------------------------------------------------------------------
 pro zaw_ar_flux_bal, CRD_in, mdi_i, ARs, ar_in, n_ars, date, ar_cnst=ar_cnst, seg_const=seg_const, display=display, prt=prt, info=info, sqs_nm = sqs_nm, pltn = pltn
