@@ -260,10 +260,6 @@ if instr eq 3 then DayOff = julday(1,1,1993);	MDI
 if instr eq 4 then DayOff = julday(1,1,2009);	HMI
 
 
-tmp_in = where(lthaqt eq 7);ndsqtlim)
-
-;for i = 0, tmp_in[0] do begin
-
 for i = 0, n_elements(bndrsa)-1 do begin
   
   mdi_i1 = bndrsa[i]
