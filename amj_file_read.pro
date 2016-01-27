@@ -44,10 +44,15 @@ endif
 	
 ;MDI
 if instr eq 3 then begin
-	dir_str = strmid( mdistr, 0, 4 ) + '/' + strmid( mdistr, 5, 2 ) + '/' + strmid( mdistr, 8, 2 )
+
+	misstol = 0
+	avg = 0
+	noavg = 0
+
+	dir_str = strmid(datestr,0,4) + '/' + strmid(datestr,5,2) + '/' + strmid(datestr,8,2)
 
 	fn0 = '/disk/data/SOHO/mdi/fd_M_96m_01d/' + dir_str
-	fn0 = fn0 + '/fd_M_96m_01d.' + mdi_datestr( mdistr )
+	fn0 = fn0 + '/fd_M_96m_01d.' + mdi_datestr( datestr )
 	
 	itry = 0
 	IF( keyword_set( ilist ) ) THEN itry = ilist
