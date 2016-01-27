@@ -90,7 +90,6 @@ endif
 	
 
 IF( cf gt 0 ) THEN begin
-
 	;HMI uses structures for header values
 	if instr eq 4 then begin
   
@@ -160,7 +159,7 @@ IF( cf gt 0 ) THEN begin
     y = float( ( findgen(ny) - y0 ) )
     
     mg = { img:m, x:x, y:y, rad:radius, b0:b0, p:p, date:str}
-  
+  	
 endif else begin
   mg = 0.0
 endelse

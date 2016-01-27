@@ -4,7 +4,7 @@ ftsz = 14
 
 ;Defining control (right) buttons
 ;labs = ['RE-DETECT', 'RE-LABEL', 'AGGREGATE', 'CREATE', 'DELETE', 'QUIT' ]
-labs = ['LON-GUIDE','PRINT SCREEN','CONTRAST -','CONTRAST +','SYNCHRONIZE','RE-DETECT', 'FRAGMENT', 'MERGE', 'RE-LABEL', 'CREATE/TRACK', 'CREATE', 'DELETE ALL', 'DELETE ONE', 'QUIT' ]
+labs = ['FLUX BAL','LON-GUIDE','PRINT SCREEN','CONTRAST -','CONTRAST +','SYNCHRONIZE','RE-DETECT', 'FRAGMENT', 'MERGE', 'RE-LABEL', 'CREATE/TRACK', 'CREATE', 'DELETE ALL', 'DELETE ONE', 'QUIT' ]
 
 nl = n_elements( labs )
 
@@ -843,7 +843,6 @@ END
 ;               the snapshot
 
 
-;EDITS
 PRO main_ar_id, start_date=start_date, continue = continue, instr, restoref = restoref, pnr_file = pnr_file, pre_coord = pre_coord, labl = labl, buff = buff, nobuff = nobuff, kerth1=kerth1, kerth2=kerth2, arth=arth, eros=eros, dila=dila, dislim=dislim, ovrlim=ovrlim, ardislim1=ardislim1, exp_f=exp_f, exp_d=exp_d, exp_s=exp_s, MxFlxim=MxFlxim, rtrn_chk = rtrn_chk
 
 device,retain=2
@@ -1279,7 +1278,7 @@ REPEAT BEGIN
       			amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const;, /disp
       		endelse
         	CRD_mdi_i = mdi_ir
-        end
+        endif
 
         amj_pnr_dt, CRD, mdi_ir, PRs, NRs, instr, seg_const=seg_const;, /disp,/not_merge, /detdisp
 
@@ -1302,7 +1301,7 @@ REPEAT BEGIN
       			amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const;, /disp
       		endelse
         	CRD_mdi_i = mdi_ir
-        end                       
+        endif                       
         amj_ar_dt_track_dr, CRD, mdi_ir, lbl, PRs, NRs, ARs, mgr.date, ar_cnst=ar_cnst, seg_const=seg_const;,/display;, /bck_trck;, /display
         detar_sw = 0
         mdi_ir_vis = [mdi_ir_vis,mdi_ir]
@@ -1384,36 +1383,36 @@ REPEAT BEGIN
               print, 'Cancelled. No ARs were erased'
             endif else begin
               
-              ;finding corresponding PRs
-              pr_ix = where(PRs.mdi_i eq ARs[ar_in].mdi_i)
-              nr_ix = where(NRs.mdi_i eq ARs[ar_in].mdi_i)
-              
-              ;Find distances                            
-              disp = sqrt((ARs[ar_in].fcn_ltp - PRs[pr_ix].fcn_lt)^2.0 + (ARs[ar_in].fcn_lnp - PRs[pr_ix].fcn_ln)^2.0)
-              disn = sqrt((ARs[ar_in].fcn_ltn - NRs[nr_ix].fcn_lt)^2.0 + (ARs[ar_in].fcn_lnn - NRs[nr_ix].fcn_ln)^2.0)
-              
-              ;Find Minima
-              minp = min(disp,inp)
-              minn = min(disn,inn)
-              
-              ;Restoring indices for availability             
-              PRs[pr_ix[inp]].lnk_sw = 0
-              PRs[pr_ix[inp]].ar_lbl = 0
-              NRs[nr_ix[inn]].lnk_sw = 0        
-              NRs[nr_ix[inn]].ar_lbl = 0        
+	         ;finding corresponding PRs
+	         pr_ix = where(PRs.mdi_i eq ARs[ar_in].mdi_i)
+	         nr_ix = where(NRs.mdi_i eq ARs[ar_in].mdi_i)
+	          
+	         ;Find distances                            
+	         disp = sqrt((ARs[ar_in].fcn_ltp - PRs[pr_ix].fcn_lt)^2.0 + (ARs[ar_in].fcn_lnp - PRs[pr_ix].fcn_ln)^2.0)
+	         disn = sqrt((ARs[ar_in].fcn_ltn - NRs[nr_ix].fcn_lt)^2.0 + (ARs[ar_in].fcn_lnn - NRs[nr_ix].fcn_ln)^2.0)
+	          
+	         ;Find Minima
+	         minp = min(disp,inp)
+	         minn = min(disn,inn)
+	          
+	         ;Restoring indices for availability             
+	         PRs[pr_ix[inp]].lnk_sw = 0
+	         PRs[pr_ix[inp]].ar_lbl = 0
+	         NRs[nr_ix[inn]].lnk_sw = 0        
+	         NRs[nr_ix[inn]].ar_lbl = 0        
 
-              ;Removing region              
-              first = 0
-              last = N_Elements(ARs)-1
-              CASE ar_in OF
-                first: ARs = ARs[1:*]
-                last: ARs = ARs[first:last-1]
-                ELSE: ARs = [ ARs[first:ar_in-1], ARs[ar_in+1:last] ]
-              ENDCASE
+	         ;Removing region              
+	         first = 0
+	         last = N_Elements(ARs)-1
+	         CASE ar_in OF
+	         	first: ARs = ARs[1:*]
+	            last: ARs = ARs[first:last-1]
+	            ELSE: ARs = [ ARs[first:ar_in-1], ARs[ar_in+1:last] ]
+	         ENDCASE
 
-              redraw = 1
-              und_sw = 1               
-            endelse         
+	         redraw = 1
+	         und_sw = 1               
+        	endelse         
          END         
       3: BEGIN
             print, 'Delete All'
@@ -1508,7 +1507,7 @@ REPEAT BEGIN
 			      			amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const;, /disp
 			      		endelse
 			        	CRD_mdi_i = mdi_ir
-			        end
+			        endif
 					print, 'Creating Region'			                                                  
                     amj_ar_manual, CRD, mdi_ir, inp, inn, lbl, PRs, NRs, ARs, mgr.date, ar_cnst=ar_cnst, seg_const=seg_const
                     redraw = 1    
@@ -1575,7 +1574,7 @@ REPEAT BEGIN
 			      			amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const;, /disp
 			      		endelse
 			        	CRD_mdi_i = mdi_ir
-			        end
+			        endif
 			        print, 'Creating Region'                                           
                     amj_ar_manual, CRD, mdi_ir, inp, inn, lbl, PRs, NRs, ARs, mgr.date, ar_cnst=ar_cnst, seg_const=seg_const, /track
                     redraw = 1    
@@ -1686,7 +1685,7 @@ REPEAT BEGIN
 				      			amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const;, /disp
 				      		endelse
 				        	CRD_mdi_i = mdi_ir
-				        end                                           
+				        endif                                           
 						print, 'Merging'
 						amj_pnr_merge, CRD, mdi_ir, inar, innar, PRs, ARs, pl_sw, mgr.date
 
@@ -1724,7 +1723,7 @@ REPEAT BEGIN
 				      			amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const;, /disp
 				      		endelse
 				        	CRD_mdi_i = mdi_ir
-				        end        
+				        endif        
 						print, 'Merging'
 						amj_pnr_merge, CRD, mdi_ir, inar, innar, NRs, ARs, pl_sw, date
 
@@ -1833,7 +1832,7 @@ REPEAT BEGIN
 							amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const;, /disp
 						endelse
 						CRD_mdi_i = mdi_ir
-					end          			               
+					endif          			               
 					print, 'Detecting fragmets...'
 					amj_pnr_dt, CRD, mdi_ir, tmp_PRs, tmp_NRs, seg_const=tmp_seg_const, pnr_lbl = -999;,/not_merge;, /detdisp
 
@@ -1932,8 +1931,8 @@ REPEAT BEGIN
             stat = 0
             sv_sw = 0
          END	  
-     14: BEGIN
-            print, 'Longitudinal Guide'
+    14: BEGIN
+        	print, 'Longitudinal Guide'
 			amj_pick_long, hdrr, hdrl, ARs, latlr, Lonhrl, Lonhrr, pls, pad, plxy, plxx, d_zoom, instr
 			
 			;print, Lonhrl
@@ -1943,8 +1942,31 @@ REPEAT BEGIN
             ds_swr = 3
             redraw = 1			
 			
-         END
-     15: BEGIN
+        END
+	15: BEGIN 
+			print, 'Balancing Flux'
+			;pro zaw_ar_flux_balance, CRD_in, mdi_i, ARs, n_ars, date, ar_cnst=ar_cnst, seg_const=seg_const, display=display, prt=prt, info=info, sqs_nm = sqs_nm, pltn = pltn
+			ar_in = where((ARs.mdi_i eq mdi_ir), n_ars)
+			print, n_ars
+			if (n_ars ne 0) then begin
+
+				if CRD_mdi_i ne mdi_ir then begin
+					if keyword_set(pre_coord) then begin
+						amj_pre_coord_read, instr, mdi_ir, CRD
+					endif else begin
+						amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const;, /disp
+					endelse
+					CRD_mdi_i = mdi_ir
+				endif 
+
+				zaw_ar_flux_bal, CRD, mdi_i, ARs, ar_in, n_ars, dater, ar_cnst = ar_cnst, seg_const = seg_const
+			endif else begin
+				print, 'No valid ARs in call to zaw_ar_flux_balance.pro'
+			endelse			
+
+			redraw = 1
+		END
+    16: BEGIN
             print, '<< Reference'
             mdi_il = mdi_il - iskip
             redraw =  1
@@ -1956,8 +1978,8 @@ REPEAT BEGIN
 				ref_sw = 0
 			endif			
 			
-         END
-     16: BEGIN
+        END
+    17: BEGIN
             print, '< Reference'
             mdi_il = mdi_il - 1
             redraw =  1
@@ -1970,13 +1992,13 @@ REPEAT BEGIN
 			endif			
 			
          END
-  	 17: BEGIN
+  	 18: BEGIN
   	        print, 'Jump to'
       			date = ''
       			read, 'Enter date (e.g. 2001-08-31): ', date
       			
       			mg_tmp = amj_file_read( date, hdrr, instr)
-            mdi_tmp  = julday(strmid(date,5,2),strmid(date,8,2),strmid(date,0,4))-DayOff
+            	mdi_tmp  = julday(strmid(date,5,2),strmid(date,8,2),strmid(date,0,4))-DayOff
       			
       			tmpsize = size(mg_tmp)
       			if (tmpsize[2] ne 8) then begin
@@ -1994,7 +2016,7 @@ REPEAT BEGIN
 					
       			endelse  			
   		   END
-     18: BEGIN
+     19: BEGIN
             print, '> Reference'
             mdi_il = mdi_il + 1
             redraw = 1
@@ -2007,7 +2029,7 @@ REPEAT BEGIN
 			endif			
 			
          END
-     19: BEGIN
+     20: BEGIN
             print, '>> Reference'
             mdi_il = mdi_il + iskip
             redraw = 1 
@@ -2020,7 +2042,7 @@ REPEAT BEGIN
 			endif			
 			
          END
-     20: BEGIN
+     21: BEGIN
             print, '< Control'
             mdi_ir = mdi_ir - 1
             mdi_il = mdi_il - 1 + dy_skp
@@ -2034,7 +2056,7 @@ REPEAT BEGIN
 			endif
 				
          END
-     21: BEGIN
+     22: BEGIN
             print, 'Jump to'
             date = ''
             read, 'Enter date (e.g. 2001-08-31): ', date
@@ -2060,7 +2082,7 @@ REPEAT BEGIN
 			  
             endelse       
          END
-     22: BEGIN
+     23: BEGIN
             print, '> Control'
             mdi_ir = mdi_ir + 1			
             mdi_il = mdi_il - 1 + dy_skp
@@ -2093,13 +2115,13 @@ REPEAT BEGIN
             rw_msw = 1          
           
          END
-     23: BEGIN
+     24: BEGIN
             print, 'Left Overlay'
             ds_swl = ds_swl + 1
             if (ds_swl gt 4) then ds_swl = 1
             redraw = 1                    
          END
-     24: BEGIN
+     25: BEGIN
             print, 'Right Overlay'
             ds_swr = ds_swr + 1			
 			;Hiding reference lines
