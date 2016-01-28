@@ -72,7 +72,7 @@ endif
 ;
 ;set the display window size and display thresholds ----------------------------------------------------------
 
-display_zoom=0.125
+display_zoom=0.5
 display_xsize=sz[1]*display_zoom & display_ysize=sz[2]*display_zoom  
 
 print_zoom=1.0
@@ -137,14 +137,14 @@ endif else begin
 		di = fxpar(hdr_in,'R_SUN');
 
 		;Load Solar Coordinates
-		P0 = fxpar(hdr_in, 'P_ANGLE')
+		P0 = 0.0
 		RD = fxpar(hdr_in, 'OBS_DIST')/0.0046491
 		B0 = fxpar(hdr_in, 'B0')
 		L0 = fxpar(hdr_in, 'L0')
 
 		;Observer Coordinates
-		X_scl = fxpar(hdr_in, 'XSCALE')
-		Y_scl = fxpar(hdr_in, 'YSCALE')	
+		X_scl = fxpar(hdr_in, 'XSCALE')/60.0
+		Y_scl = fxpar(hdr_in, 'YSCALE')/60.0	
 	
 	endif
 
@@ -177,17 +177,17 @@ LatN_pl = fltarr(nps_pl+1) + 70.0
 LatE_pl = fltarr(nps_pl+1)
 LatS_pl = fltarr(nps_pl+1) - 70.0
 
-N_pl = hel2arcmin(LatN_pl, Lon_pl, vsblN, p = P0, b0 = B0, r0 = RD, l0 = L0 , rsun = di*X_scl)/X_scl
+N_pl = hel2arcmin(LatN_pl, Lon_pl, vsblN, p = P0, b0 = B0, r0 = RD, l0 = L0 , rsun = di)*60.0
 N_pl_ind = where(vsblN eq 0)
 N_pl[0,N_pl_ind] = !values.f_nan
 N_pl[1,N_pl_ind] = !values.f_nan
 
-E_pl = hel2arcmin(LatE_pl, Lon_pl, vsblE, p = P0, b0 = B0, r0 = RD, l0 = L0 , rsun = di*X_scl)/X_scl
+E_pl = hel2arcmin(LatE_pl, Lon_pl, vsblE, p = P0, b0 = B0, r0 = RD, l0 = L0 , rsun = di)*60.0
 E_pl_ind = where(vsblE eq 0)
 E_pl[0,E_pl_ind] = !values.f_nan
 E_pl[1,E_pl_ind] = !values.f_nan
 
-S_pl = hel2arcmin(LatS_pl, Lon_pl, vsblS, p = P0, b0 = B0, r0 = RD, l0 = L0 , rsun = di*X_scl)/X_scl
+S_pl = hel2arcmin(LatS_pl, Lon_pl, vsblS, p = P0, b0 = B0, r0 = RD, l0 = L0 , rsun = di)*60.0
 S_pl_ind = where(vsblS eq 0)
 S_pl[0,S_pl_ind] = !values.f_nan
 S_pl[1,S_pl_ind] = !values.f_nan
@@ -196,8 +196,8 @@ S_pl[1,S_pl_ind] = !values.f_nan
 nps_cir = 36000.0
 Th_cir = findgen(nps_pl+1)/nps_pl*360.0 - 180.0
 
-X_cir = (di+4.0)*cos(Th_cir*!dtor)+hfx
-Y_cir = (di+4.0)*sin(Th_cir*!dtor)+hfy
+X_cir = (di)*cos(Th_cir*!dtor)+hfx
+Y_cir = (di)*sin(Th_cir*!dtor)+hfy
 
 ;
 ;Raw image Display------------------------------------------------
@@ -227,6 +227,7 @@ if keyword_set(display) then begin
     plots, (N_pl[0,*] + hfx)*display_zoom, (N_pl[1,*] + hfy)*display_zoom ,color='FFFFFF'x,/device,thick=3
     plots, (E_pl[0,*] + hfx)*display_zoom, (E_pl[1,*] + hfy)*display_zoom ,color='FFFFFF'x,/device,thick=3
     plots, (S_pl[0,*] + hfx)*display_zoom, (S_pl[1,*] + hfy)*display_zoom ,color='FFFFFF'x,/device,thick=3
+    tvcircle,di*display_zoom, hfx*display_zoom,hfy*display_zoom,color=255,/device,thick=3
 endif
 
 if keyword_set(prt) then begin
@@ -247,6 +248,8 @@ if keyword_set(prt) then begin
 
 endif
 imgs0=im
+
+
 
 print, 'Correcting LOS field...'
 ;Correct line of sight magnetic field assuming field is radial
@@ -316,7 +319,7 @@ if keyword_set(display) then begin
     loadct,0,/silent
     if not keyword_set(ps) then window,2,xsize=display_xsize,ysize=display_ysize,retain=2 
     plot,[1,1],/nodata,xstyle=5,ystyle=5
-    tv,bytscl(congrid(mgnt_ar,display_xsize,display_ysize),min=min(mgnt_ar,/nan),max=max(mgnt_ar,/nan)/10)
+    tv,bytscl(congrid(mgnt_ar,display_xsize,display_ysize),min=max(mgnt_ar,/nan)/100,max=max(mgnt_ar,/nan))
     loadct, 13
     plots, (N_pl[0,*] + hfx)*display_zoom, (N_pl[1,*] + hfy)*display_zoom ,color=200,/device,thick=3
     plots, (E_pl[0,*] + hfx)*display_zoom, (E_pl[1,*] + hfy)*display_zoom ,color=200*3/6,/device,thick=3
@@ -338,7 +341,7 @@ mgnt_flx = mgnt_ar*im
 
 if keyword_set(display) then begin
     loadct,0,/silent
-    if not keyword_set(ps) then window,6,xsize=display_xsize,ysize=display_ysize,retain=2 
+    if not keyword_set(ps) then window,3,xsize=display_xsize,ysize=display_ysize,retain=2 
     plot,[1,1],/nodata,xstyle=5,ystyle=5
     tv,bytscl(congrid(mgnt_flx,display_xsize,display_ysize),min=min(mgnt_flx/10.0,/nan),max=max(mgnt_flx/10.0,/nan))
     loadct, 13
