@@ -195,12 +195,23 @@ incrmnt = 100
 max_max_sat = 2000
 min_max_sat = 0
 
+if instr eq 3 then begin 
+
 ARs = {ar, mdi_i: 0L, date: '', labl: 0, clr: 0, indxp: '', indxn: '', fluxp: !values.f_nan, fluxn: !values.f_nan, areap:!values.f_nan, arean:!values.f_nan, $
           fcn_ltp: !values.f_nan, fcn_lnp: !values.f_nan, dcenp: !values.f_nan, $ 
           fcn_ltn: !values.f_nan, fcn_lnn: !values.f_nan, dcenn: !values.f_nan, $
           fcenxpp: !values.f_nan, fcenypp: !values.f_nan, dcenpp: !values.f_nan, $
           fcenxpn: !values.f_nan, fcenypn: !values.f_nan, dcenpn: !values.f_nan, $               
-          dis: !values.f_nan, tilt: !values.f_nan, lp: !values.f_nan, dm: !values.f_nan, qm: !values.f_nan}  
+          dis: !values.f_nan, tilt: !values.f_nan, lp: !values.f_nan}
+endif else begin 
+
+ARs = {ar, mdi_i: 0L, date: '', labl: 0, clr: 0, indxp: '', indxn: '', fluxp: !values.f_nan, fluxn: !values.f_nan, areap:!values.f_nan, arean:!values.f_nan, $
+          fcn_ltp: !values.f_nan, fcn_lnp: !values.f_nan, dcenp: !values.f_nan, $ 
+          fcn_ltn: !values.f_nan, fcn_lnn: !values.f_nan, dcenn: !values.f_nan, $
+          fcenxpp: !values.f_nan, fcenypp: !values.f_nan, dcenpp: !values.f_nan, $
+          fcenxpn: !values.f_nan, fcenypn: !values.f_nan, dcenpn: !values.f_nan, $               
+          dis: !values.f_nan, tilt: !values.f_nan, lp: !values.f_nan, dm: !values.f_nan, qm: !values.f_nan} 
+endelse  
 
 if instr eq 1 then date0 = '1981-06-08';  KPVT 512
 if instr eq 2 then date0 = '1992-04-21';  KPVT SPMG
