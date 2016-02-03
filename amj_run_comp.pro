@@ -81,7 +81,7 @@ if (dbl_sw eq 1) then begin
 
 
   ;Defining simultaneous progression
-  labs = ['BOTH >', '< BOTH']
+  labs = ['BOTH > x10', 'BOTH < x10', 'BOTH >', '< BOTH']
   
   n4 = n_elements( labs )
   
@@ -268,40 +268,61 @@ if keyword_set(dbl) then begin
 
 endif
 
+;Switches for magnetogram reading
+left_sw = 1
+right_sw = 1
+
 REPEAT BEGIN
+  n_itr = 0
 
-  tmp_sw = 0;
-  repeat begin
-    ;Reading files
-
-    ;Right Magnetogram
-    if (dbl_sw eq 1) then begin 
-      ;dater = mdi_datestr( string( mdi_ir ), /inverse )
+  ;Right Window
+  if (dbl_sw eq 1 and right_sw eq 1) then begin   
+    print, 'Looking for valid right window magnetogram'
+    repeat begin
+      ;Reading files
       caldat, mdi_ir + DayOff, Month, Day, Year
       dater = strtrim(string(Year),2)+'-'+strtrim(string(Month,format='(I02)'),2)+'-'+strtrim(string(Day,format='(I02)'),2)
       print, dater
-      mgr = amj_file_read( dater, hdrr, instr)
+      mgr = amj_file_read( dater, hdrr, instr )
+        
       sr = size(mgr)
-      mdi_ir = mdi_ir + 1
-      
-      if (sr[2] eq 8) then tmp_sw = 1
-      
-    endif else begin
-      tmp_sw = 1
-    endelse
-    
-    ;Left Magnetogram
-    ;datel = mdi_datestr( string( mdi_il ), /inverse )
-    caldat, mdi_il + DayOff, Month, Day, Year
-    datel = strtrim(string(Year),2)+'-'+strtrim(string(Month,format='(I02)'),2)+'-'+strtrim(string(Day,format='(I02)'),2) 
-    mgl = amj_file_read( datel, hdrl, instr)
-    sl = size(mgl)
-    mdi_il = mdi_il + 1
-    
-  endrep until ( (tmp_sw eq 1) and (sl[2] eq 8) )
   
-  if (dbl_sw eq 1) then mdi_ir = mdi_ir - 1
-  mdi_il = mdi_il - 1  
+      mdi_ir = mdi_ir + 1
+      n_itr = n_itr+1
+    endrep until ( (sr[2] eq 8) or (n_itr gt 365) )
+    
+    mdi_ir = mdi_ir - 1
+  endif
+  right_sw = 0
+
+  if (n_itr gt 365) then begin
+    stat = 0
+  endif
+
+  ;Left window
+  n_itr = 0
+  if (left_sw eq 1) then begin
+    print, 'Looking for valid left window magnetogram' 
+    repeat begin
+      ;Reading files 
+      caldat, mdi_il+DayOff, Month, Day, Year
+      datel = strtrim(string(Year),2)+'-'+strtrim(string(Month,format='(I02)'),2)+'-'+strtrim(string(Day,format='(I02)'),2)
+      print, datel
+      mgl = amj_file_read( datel, hdrl, instr )
+
+      sl = size(mgl)
+      
+      mdi_il = mdi_il + 1
+      n_itr = n_itr + 1
+    endrep until ( (sl[2] eq 8) or (n_itr gt 365) )
+    
+    mdi_il = mdi_il - 1
+  endif
+  left_sw = 0
+
+  if (n_itr gt 365) then begin
+    stat = 0
+  endif
   
   ;Definition of window parameters and window initialization
   pls = 480;
@@ -373,13 +394,13 @@ REPEAT BEGIN
             endif
             print, 'max_sat = ', max_sat
             redraw = 1
-  		   END
+         END
       3: BEGIN
             print, 'Contrast Down'
             max_sat = max_sat + incrmnt
             if (max_sat ge max_max_sat) then begin
               max_sat = max_max_sat 
-             	print, 'Minimum contrast reached'
+              print, 'Minimum contrast reached'
             endif
             print, 'max_sat = ', max_sat
             redraw = 1
@@ -387,66 +408,75 @@ REPEAT BEGIN
       4: BEGIN
             print, 'Synchronize'
             mdi_il = mdi_ir
+            left_sw = 1
+            right_sw = 1
             redraw = 1                    
          END     
       5: BEGIN
             print, 'Print Screen'
             tmp_fl = 'prnt_' + strtrim(string(mdi_il,'(I)'),2) + '.png'
             write_png, tmp_fl, TVRD(/true)
-         END	  
+         END    
       6: BEGIN
             print, '<< Left'
             mdi_il = mdi_il - iskip
+            left_sw = 1
             redraw = 1
          END
       7: BEGIN
             print, '< Left'
             mdi_il = mdi_il - 1
+            left_sw = 1
             redraw = 1
          END
-  	  8: BEGIN
+      8: BEGIN
             print, 'Jump to Left'
-      			date = ''
-      			read, 'Enter date (e.g. 2001-08-31): ', date
-      			mdi_tmp = long( mdi_datestr( date ) )
-      			date_tmp = mdi_datestr( string( mdi_tmp ), /inverse ) 
-      			mg_tmp = amj_file_read( date_tmp, hdrr, instr )
-      			
-      			tmpsize = size(mg_tmp)
-      			if (tmpsize[2] ne 8) then begin
-      				print, 'No available MDI magnetogram.'
-      			endif else begin
-      				mdi_il = mdi_tmp
-      				redraw = 1
-      			endelse  			
-  		   END
+            date = ''
+            read, 'Enter date (e.g. 2001-08-31): ', date
+            mdi_tmp = long( mdi_datestr( date ) )
+            date_tmp = mdi_datestr( string( mdi_tmp ), /inverse ) 
+            mg_tmp = amj_file_read( date_tmp, hdrr, instr )
+            
+            tmpsize = size(mg_tmp)
+            if (tmpsize[2] ne 8) then begin
+              print, 'No available MDI magnetogram.'
+            endif else begin
+              mdi_il = mdi_tmp
+              left_sw = 1
+              redraw = 1
+            endelse       
+         END
       9: BEGIN
             print, '> Left'
             mdi_il = mdi_il + 1
+            left_sw = 1
             redraw = 1
          END
-     10: BEGIN
+      10: BEGIN
             print, '>> Left'
             mdi_il = mdi_il + iskip
+            left_sw = 1
             redraw = 1          
          END
-     11: BEGIN
+      11: BEGIN
             print, 'Left Overlay'
             ds_sw = ds_sw + 1
             if (ds_sw gt 3) then ds_sw = 1
             redraw = 1                    
          END
-     12: BEGIN
+      12: BEGIN
             print, '<< Right'
             mdi_ir = mdi_ir - iskip
+            right_sw = 1
             redraw = 1
          END
-     13: BEGIN
+      13: BEGIN
             print, '< Right'
             mdi_ir = mdi_ir - 1
+            right_sw = 1
             redraw = 1
          END
-     14: BEGIN
+      14: BEGIN
             print, 'Jump to Right'
             date = ''
             read, 'Enter date (e.g. 2001-08-31): ', date
@@ -459,46 +489,64 @@ REPEAT BEGIN
               print, 'No available MDI magnetogram.'
             endif else begin
               mdi_ir = mdi_tmp
+              right_sw = 1
               redraw = 1
             endelse       
          END
-     15: BEGIN
+      15: BEGIN
             print, '> Right'
             mdi_ir = mdi_ir + 1
+            right_sw = 1
             redraw = 1
          END
-     16: BEGIN
+      16: BEGIN
             print, '>> Right'
             mdi_ir = mdi_ir + iskip
+            right_sw = 1
             redraw = 1          
          END
-     17: BEGIN
+      17: BEGIN
             print, 'Right Overlay'
             ds_sw = ds_sw + 1
             if (ds_sw gt 3) then ds_sw = 1
             redraw = 1                    
          END
-     18: BEGIN
+      18: BEGIN
             print, '< Both'
             mdi_ir = mdi_ir - 1
             mdi_il = mdi_il - 1
+            left_sw = 1
+            right_sw = 1
             redraw = 1
          END
-     19: BEGIN
+      19: BEGIN
             print, 'Both >'
             mdi_ir = mdi_ir + 1
             mdi_il = mdi_il + 1
+            left_sw = 1
+            right_sw = 1
+            redraw = 1
+         END
+      20: BEGIN
+            print, 'BOTH < x10'
+            mdi_ir = mdi_ir - 10
+            mdi_il = mdi_il - 10
+            left_sw = 1
+            right_sw = 1
+            redraw = 1
+         END
+      21: BEGIN
+            print, 'BOTH > x10'
+            mdi_ir = mdi_ir + 10
+            mdi_il = mdi_il + 10
+            left_sw = 1
+            right_sw = 1
             redraw = 1
          END
     ENDCASE
-	
+  
   ENDREP UNTIL( redraw or ( stat eq 0 ) )
 ENDREP UNTIL ( stat EQ 0 )
 
 return
 END
-
-
-;----------------------------------------------------------------------------------------------------------
-
- 
