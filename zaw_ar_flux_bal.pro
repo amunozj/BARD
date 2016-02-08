@@ -80,6 +80,7 @@ for i=0,n_ars-1-nbal do begin
   Th_minH = seg_const.ar_th*5.0/6.0    
   Th_max = max(abs(ar_cnst.valid_range))
 
+  print, "Flux imbalance: " + nflxim
   ;Iterative enlargement------------------------------------------------------------------------------
   while (abs(bstflxim) gt ar_cnst.Imb_tol) and (n le ar_cnst.Imb_it) do begin
    
@@ -141,7 +142,7 @@ for i=0,n_ars-1-nbal do begin
         Th_minH = Th_minH + seg_const.ar_th/(6.0*2.0^n)  
 
       endelse
-
+      print, bstflxim
       n = n+1
 
     ;Leaving search loop because there was no improvement in flux balance
