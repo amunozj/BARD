@@ -36,7 +36,7 @@ seg_const_lg = seg_const
 
 ;First reference day for keeping track time easily
 if instr eq 1 then DayOff = julday(1,1,1970);	KPVT 512
-if instr eq 2 then DayOff = julday(1,1,1970);	KPVT SPMG
+if instr eq 2 then DayOff = julday(1,1,1990);	KPVT SPMG
 if instr eq 3 then DayOff = julday(1,1,1993);	MDI
 if instr eq 4 then DayOff = julday(1,1,2009);	HMI
 
@@ -190,7 +190,7 @@ while (mdi_ir le mdi_if) do begin
     
       if keyword_set(pre_frag) then begin
         
-          SAVE, PRs, NRs, PRsFr, NRsFr, seg_const_lg, FILENAME = 'PNRs_PrFr' + start_date + '_to_' + end_date + '.sav'  
+          SAVE, PRs, NRs, PRsFr, NRsFr, seg_const_lg, FILENAME = 'PNRs_PrFr_' + start_date + '_to_' + end_date + '.sav'  
         
       endif else begin
     

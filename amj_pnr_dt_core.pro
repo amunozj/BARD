@@ -196,6 +196,22 @@ endif else begin
 
 	endif
 
+
+
+    ;KPVT-SPMG
+    if instr eq 2 then begin
+    
+        ;Define center and radius
+        hfx = fxpar(CRD_in.hdr, 'CRPIX1A');35;'CRPIX1');  Location of the center in x pixels 
+        hfy = fxpar(CRD_in.hdr, 'CRPIX2A');+1.0;    Location of the center in y pixels
+        di = fxpar(CRD_in.hdr,'EPH_R0')/fxpar(CRD_in.hdr,'SCALE');
+
+        ;Observer Coordinates
+        dx = fxpar(CRD_in.hdr, 'CDELT1')*fxpar(CRD_in.hdr, 'CRR_SCLX')/60.0
+        dy = fxpar(CRD_in.hdr, 'CDELT2')*fxpar(CRD_in.hdr, 'CRR_SCLY')/60.0
+
+    endif    
+
 	;MDI
 	if instr eq 3 then begin
 

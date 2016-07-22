@@ -278,6 +278,26 @@ endif else begin
 
 	endif
 
+	;KPVT-SPMG
+	if instr eq 2 then begin
+	
+		;Define center and radius
+		hfxl = fxpar(hdr_l, 'CRPIX1A');35;'CRPIX1');  Location of the center in x pixels 
+		hfyl = fxpar(hdr_l, 'CRPIX2A');+1.0;    Location of the center in y pixels
+		dil = fxpar(hdr_l,'EPH_R0')/fxpar(hdr_in,'SCALE');
+
+		;Load Solar Coordinates
+		P0l = 0.0
+		RDl = !values.f_nan
+		B0l = fxpar(hdr_l, 'EPH_B0')
+		L0l = fxpar(hdr_l, 'EPH_L0')
+
+		;Observer Coordinates
+		X_scll = fxpar(hdr_l, 'CDELT1')*fxpar(hdr_l, 'CRR_SCLX')/60.0
+		Y_scll = fxpar(hdr_l, 'CDELT2')*fxpar(hdr_l, 'CRR_SCLY')/60.0
+
+	endif	
+
 	;MDI
 	if instr eq 3 then begin
 	
@@ -345,6 +365,27 @@ endif else begin
 		Y_sclr = fxpar(hdr_r, 'CDELT2')*fxpar(hdr_r, 'CRR_SCLY')/60.0
 
 	endif
+
+	;KPVT-SPMG
+	if instr eq 2 then begin
+	
+		;Define center and radius
+		hfxr = fxpar(hdr_r, 'CRPIX1A');35;'CRPIX1');  Location of the center in x pixels 
+		hfyr = fxpar(hdr_r, 'CRPIX2A');+1.0;    Location of the center in y pixels
+		dir = fxpar(hdr_r,'EPH_R0')/fxpar(hdr_in,'SCALE');
+
+		;Load Solar Coordinates
+		P0r = 0.0
+		RDr = !values.f_nan
+		B0r = fxpar(hdr_r, 'EPH_B0')
+		L0r = fxpar(hdr_r, 'EPH_L0')
+
+		;Observer Coordinates
+		X_sclr = fxpar(hdr_r, 'CDELT1')*fxpar(hdr_r, 'CRR_SCLX')/60.0
+		Y_sclr = fxpar(hdr_r, 'CDELT2')*fxpar(hdr_r, 'CRR_SCLY')/60.0
+
+	endif
+
 
 	;MDI
 	if instr eq 3 then begin
@@ -934,14 +975,14 @@ if ( (not keyword_set( continue )) and (not keyword_set(restoref)) ) then begin
 	IF( keyword_set( start_date ) ) THEN date0 = start_date $
 	ELSE begin
 		if instr eq 1 then date0 = '1981-06-08';	KPVT 512
-		if instr eq 2 then date0 = '1992-04-21';	KPVT SPMG
+		if instr eq 2 then date0 = '1992-04-22';	KPVT SPMG
 		if instr eq 3 then date0 = '1997-01-01';	MDI
 		if instr eq 4 then date0 = '2010-11-21';	HMI
 	endelse
 
 	;First reference day for keeping track time easily
 	if instr eq 1 then DayOff = julday(1,1,1970);	KPVT 512
-	if instr eq 2 then DayOff = julday(1,1,1970);	KPVT SPMG
+	if instr eq 2 then DayOff = julday(1,1,1990);	KPVT SPMG
 	if instr eq 3 then DayOff = julday(1,1,1993);	MDI
 	if instr eq 4 then DayOff = julday(1,1,2009);	HMI
 
@@ -984,14 +1025,14 @@ endif else begin
 	IF( keyword_set( start_date ) ) THEN date0 = start_date $
 	ELSE begin
 		if instr eq 1 then date0 = '1981-06-08';	KPVT 512
-		if instr eq 2 then date0 = '1992-04-21';	KPVT SPMG
+		if instr eq 2 then date0 = '1992-04-22';	KPVT SPMG
 		if instr eq 3 then date0 = '1997-01-01';	MDI
 		if instr eq 4 then date0 = '2010-11-21';	HMI
 	endelse
 
 	;First reference day for keeping track time easily
 	if instr eq 1 then DayOff = julday(1,1,1970);	KPVT 512
-	if instr eq 2 then DayOff = julday(1,1,1970);	KPVT SPMG
+	if instr eq 2 then DayOff = julday(1,1,1990);	KPVT SPMG
 	if instr eq 3 then DayOff = julday(1,1,1993);	MDI
 	if instr eq 4 then DayOff = julday(1,1,2009);	HMI
 
@@ -1030,7 +1071,7 @@ ar_cnst={dis_lim1:5.0, dis_lim2:4.0, exp_f: 1.0,  exp_d: 4.0, exp_s: 1.0, mlth: 
 
 ;KPVT 512
 if instr eq 1 then begin
-	seg_const={ker_th:400.0, ker_th2:200.0, ar_th:150.0, ar_th2:50.0, eros_size:10.0, dila_size:20.0, npssu:2, dis_lim:2.0, ovr_lim: 0.2, qr_th:60.0, mxB: 0.0, k_sig:15.0, ar_grow_sig:20., valid_range:[-20000.,20000.], deg_lim:70.0}
+	seg_const={ker_th:400.0, ker_th2:200.0, ar_th:150.0, ar_th2:50.0, eros_size:10.0, dila_size:20.0, npssu:2, dis_lim:2.0, ovr_lim: 0.2, qr_th:60.0, mxB: 0.0, k_sig:15.0, ar_grow_sig:20., valid_range:[-20000.,20000.], deg_lim:75.0}
 endif
 
 ;KPVT SMPG
@@ -1256,7 +1297,9 @@ REPEAT BEGIN
   	endif
       
   if (n_itr gt 365) then begin
-     stat = 0
+     ;stat = 0
+     mdi_il = mdi_ir
+     mgl = mgr
   endif
 
   if (stat eq 1) then begin
@@ -1354,7 +1397,7 @@ REPEAT BEGIN
       if (ds_swr eq 3) then begin
         amj_mgplot, mgr.img, mdi_ir, instr, hdr_i=hdrr, ref_sw = ref_sw, lath = latlr, Lonh=Lonhrr, seg_const = seg_const, /tag, PRs = PRs, NRs = NRs, ARs = ARs, d_xsize = pls, d_ysize = pls, max = max_sat, pos = [pls+4.0*pad, pad+plxy, 2.0*pls+4.0*pad, pls+pad+plxy], title = dater, xrange = [min(mgr.x), max(mgr.x)] , yrange = [min(mgr.y), max(mgr.y)]    
       endif
-     
+
   endif
 
                        

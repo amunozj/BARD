@@ -23,7 +23,7 @@ bndrsq = 0    ;Boundaries of quiet periods
 actv_sw = 0;  ;Switch that keeps track of whether the current period is active or quiet
 
 n_qd = 0;     ;Number of days of quiet period
-ndsqtlim = 7  ;Minimum number of quiet days necessary to end a quiet period
+ndsqtlim = 13  ;Minimum number of quiet days necessary to end a quiet period
 
 
 for i = mdi_imin, mdi_imax do begin
@@ -240,7 +240,7 @@ if n_elements(bndrsa) gt 1 then begin
 	print, bndrsa[1:n_elements(bndrsa)-1] - bndrsq[0:n_elements(bndrsq)-2]
 endif
 
-;stop
+stop
 
 tmpPRs = PRs
 tmpNRs = NRs
@@ -255,7 +255,7 @@ endif
 
 ;First reference day for keeping track time easily
 if instr eq 1 then DayOff = julday(1,1,1970);	KPVT 512
-if instr eq 2 then DayOff = julday(1,1,1970);	KPVT SPMG
+if instr eq 2 then DayOff = julday(1,1,1990);	KPVT SPMG
 if instr eq 3 then DayOff = julday(1,1,1993);	MDI
 if instr eq 4 then DayOff = julday(1,1,2009);	HMI
 
