@@ -51,7 +51,7 @@ plxx = 0; Right space
 
 ;First reference day for keeping track time easily
 if instr eq 1 then DayOff = julday(1,1,1970); KPVT 512
-if instr eq 2 then DayOff = julday(1,1,1970); KPVT SPMG
+if instr eq 2 then DayOff = julday(1,1,1990); KPVT SPMG
 if instr eq 3 then DayOff = julday(1,1,1993); MDI
 if instr eq 4 then DayOff = julday(1,1,2009); HMI
 

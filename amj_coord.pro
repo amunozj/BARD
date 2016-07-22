@@ -16,11 +16,11 @@ pro amj_coord, image_in, hdr_in, CRD_out, instr, seg_const=seg_const, display=di
 ;
 ;       hdr_in: header file of the input magnetogram
 ;
-;   	instr: 	Variable that indicates which instrument is used:
-;   			1. KPVT-512 files
-;   			2. SPMG files
-;   			3. MDI files
-;   			4. HMI files
+;       instr:  Variable that indicates which instrument is used:
+;               1. KPVT-512 files
+;               2. SPMG files
+;               3. MDI files
+;               4. HMI files
 ;   
 ; OPTIONAL INPUTS:
 ;       none
@@ -33,7 +33,7 @@ pro amj_coord, image_in, hdr_in, CRD_out, instr, seg_const=seg_const, display=di
 ;            2.  im_crr: magnetogram corrected using LOS component and assuming al field is radial
 ;            3.  hdr: header file of the input magnetogram
 ;            4.  mgnt_ar: elements of area corresponding to each pixel
-;            5.  mgnt_flx: flux elements corresponding to each pixel
+;            5.  mgnt_flx: flux elements corresponding to each pixel - corrected field
 ;            6.  Xar: x coordinate in a heliographic coordinate system 
 ;            7.  Yar: y coordinate in a heliographic coordinate system 
 ;            8.  Zar: z coordinate in a heliographic coordinate system
@@ -58,12 +58,13 @@ if n_params() lt 4 then begin
     return
 endif
 
+
 ;get the input image and dimension
 im=image_in
 sz=size(im)
 
 ;Constant with parameters for plotting, make sure the values are the same as in pnr_dt.rpo
-seg_const_def={k_sig:15.0, valid_range:[-20000.,20000.], deg_lim:70.0}
+seg_const_def={k_sig:15.0, valid_range:[-20000.,20000.], deg_lim:75.0}
 
 if not keyword_set(seg_const) then begin
     seg_const=seg_const_def
@@ -72,7 +73,7 @@ endif
 ;
 ;set the display window size and display thresholds ----------------------------------------------------------
 
-display_zoom=0.5
+display_zoom=0.25
 display_xsize=sz[1]*display_zoom & display_ysize=sz[2]*display_zoom  
 
 print_zoom=1.0
@@ -86,67 +87,88 @@ display_thresholdd = - display_thresholdu
 
 ;HMI uses structures for header values
 if instr eq 4 then begin
-	date = hdr_in.DATE_OBS
+    date = hdr_in.DATE_OBS
 
-	;Define center and radius
-	hfx = hdr_in.CRPIX1 ;  Location of the center in x pixels 
-	hfy = hdr_in.CRPIX2 ;    Location of the center in y pixels
-	di = hdr_in.RSUN_OBS/hdr_in.CDELT1;
+    ;Define center and radius
+    hfx = hdr_in.CRPIX1 ;  Location of the center in x pixels 
+    hfy = hdr_in.CRPIX2 ;    Location of the center in y pixels
+    di = hdr_in.RSUN_OBS/hdr_in.CDELT1;
 
-	;Load Solar Coordinates
-	P0 = 0.0
-	RD = hdr_in.DSUN_OBS/hdr_in.RSUN_REF
-	B0 = hdr_in.CRLT_OBS
-	L0 = hdr_in.CRLN_OBS
+    ;Load Solar Coordinates
+    P0 = 0.0
+    RD = hdr_in.DSUN_OBS/hdr_in.RSUN_REF
+    B0 = hdr_in.CRLT_OBS
+    L0 = hdr_in.CRLN_OBS
 
-	;Observer Coordinates
-	X_scl = hdr_in.CDELT1/60.0
-	Y_scl = hdr_in.CDELT2/60.0
-	
+    ;Observer Coordinates
+    X_scl = hdr_in.CDELT1/60.0
+    Y_scl = hdr_in.CDELT2/60.0
+    
 endif else begin
 
 
-	date = fxpar(hdr_in, 'DATE_OBS')
+    date = fxpar(hdr_in, 'DATE_OBS')
 
-	;KPVT-512
-	if instr eq 1 then begin
-	
-		;Define center and radius
-		hfx = fxpar(hdr_in, 'CRPIX1A');35;'CRPIX1');  Location of the center in x pixels 
-		hfy = fxpar(hdr_in, 'CRPIX2A');+1.0;    Location of the center in y pixels
-		di = fxpar(hdr_in,'EPH_R0');
+    ;KPVT-512
+    if instr eq 1 then begin
+    
+        ;Define center and radius
+        hfx = fxpar(hdr_in, 'CRPIX1A');35;'CRPIX1');  Location of the center in x pixels 
+        hfy = fxpar(hdr_in, 'CRPIX2A');+1.0;    Location of the center in y pixels
+        di = fxpar(hdr_in,'EPH_R0');
 
-		;Load Solar Coordinates
-		P0 = 0.0
-		RD = !values.f_nan
-		B0 = fxpar(hdr_in, 'EPH_B0')
-		L0 = fxpar(hdr_in, 'EPH_L0')
+        ;Load Solar Coordinates
+        P0 = 0.0
+        RD = !values.f_nan
+        B0 = fxpar(hdr_in, 'EPH_B0')
+        L0 = fxpar(hdr_in, 'EPH_L0')
 
-		;Observer Coordinates
-		X_scl = fxpar(hdr_in, 'CDELT1')*fxpar(hdr_in, 'CRR_SCLX')/60.0
-		Y_scl = fxpar(hdr_in, 'CDELT2')*fxpar(hdr_in, 'CRR_SCLY')/60.0
+        ;Observer Coordinates
+        X_scl = fxpar(hdr_in, 'CDELT1')*fxpar(hdr_in, 'CRR_SCLX')/60.0
+        Y_scl = fxpar(hdr_in, 'CDELT2')*fxpar(hdr_in, 'CRR_SCLY')/60.0
 
-	endif
+    endif
 
-	;MDI
-	if instr eq 3 then begin
-	
-		;Define center and radius
-		hfx = fxpar(hdr_in, 'X0');  Location of the center in x pixels 
-		hfy = fxpar(hdr_in, 'Y0');  Location of the center in y pixels
-		di = fxpar(hdr_in,'R_SUN');
+    ;KPVT-SPMG
+    if instr eq 2 then begin
+    
+        ;Define center and radius
+        hfx = fxpar(hdr_in, 'CRPIX1A');35;'CRPIX1');  Location of the center in x pixels 
+        hfy = fxpar(hdr_in, 'CRPIX2A');+1.0;    Location of the center in y pixels
+        di = fxpar(hdr_in,'EPH_R0')/fxpar(hdr_in,'SCALE');
 
-		;Load Solar Coordinates
-		P0 = 0.0
-		RD = fxpar(hdr_in, 'OBS_DIST')/0.0046491
-		B0 = fxpar(hdr_in, 'B0')
-		L0 = fxpar(hdr_in, 'L0')
+        ;Load Solar Coordinates
+        P0 = 0.0
+        RD = !values.f_nan
+        B0 = fxpar(hdr_in, 'EPH_B0')
+        L0 = fxpar(hdr_in, 'EPH_L0')
 
-		;Observer Coordinates
-		X_scl = fxpar(hdr_in, 'XSCALE')/60.0
-		Y_scl = fxpar(hdr_in, 'YSCALE')/60.0	
-	
-	endif
+        ;Observer Coordinates
+        X_scl = fxpar(hdr_in, 'CDELT1')*fxpar(hdr_in, 'CRR_SCLX')/60.0
+        Y_scl = fxpar(hdr_in, 'CDELT2')*fxpar(hdr_in, 'CRR_SCLY')/60.0
+
+    endif
+
+
+    ;MDI
+    if instr eq 3 then begin
+    
+        ;Define center and radius
+        hfx = fxpar(hdr_in, 'X0');  Location of the center in x pixels 
+        hfy = fxpar(hdr_in, 'Y0');  Location of the center in y pixels
+        di = fxpar(hdr_in,'R_SUN');
+
+        ;Load Solar Coordinates
+        P0 = 0.0
+        RD = fxpar(hdr_in, 'OBS_DIST')/0.0046491
+        B0 = fxpar(hdr_in, 'B0')
+        L0 = fxpar(hdr_in, 'L0')
+
+        ;Observer Coordinates
+        X_scl = fxpar(hdr_in, 'XSCALE')/60.0
+        Y_scl = fxpar(hdr_in, 'YSCALE')/60.0    
+    
+    endif
 
 endelse
 
@@ -260,11 +282,31 @@ Yobs = cos(B0*!dtor)*sin(L0*!dtor)
 Zobs = sin(B0*!dtor)
 
 M_corr = cos(Lath*!dtor)*cos(Lonh*!dtor)*Xobs + cos(Lath*!dtor)*sin(Lonh*!dtor)*Yobs + sin(Lath*!dtor)*Zobs
-im = im/M_corr
+im_corr = im/M_corr
 
-im[where( (R gt di*sin(seg_const.deg_lim*!dtor)) and finite(im) )] = 0.0
+im_corr_ind = where( (R gt di*sin(seg_const.deg_lim*!dtor)) and finite(im_corr), count )
+
+if count NE 0 then im_corr[im_corr_ind] = 0.0 
+
+
 
 ;
+;Correction projection------------------------------------------------
+;
+if keyword_set(display) then begin
+
+    set_plot,'X'
+    loadct,0,/silent
+    window,4,xsize=display_xsize,ysize=display_ysize,retain=2 
+    plot,[1,1],/nodata,xstyle=5,ystyle=5
+    tv,bytscl(congrid(M_corr,display_xsize,display_ysize),min=0,max=1)
+    plots, (N_pl[0,*] + hfx)*display_zoom, (N_pl[1,*] + hfy)*display_zoom ,color='FFFFFF'x,/device,thick=3
+    plots, (E_pl[0,*] + hfx)*display_zoom, (E_pl[1,*] + hfy)*display_zoom ,color='FFFFFF'x,/device,thick=3
+    plots, (S_pl[0,*] + hfx)*display_zoom, (S_pl[1,*] + hfy)*display_zoom ,color='FFFFFF'x,/device,thick=3
+    tvcircle,di*display_zoom*sin(seg_const.deg_lim*!dtor), hfx*display_zoom,hfy*display_zoom,color=255,/device,thick=3
+endif
+
+
 ;Corrected image Display------------------------------------------------
 ;
 if keyword_set(display) then begin
@@ -337,13 +379,13 @@ endif
 ;Calculating flux---------------------------------------------
 print, 'Calculating magnetic flux...'
 
-mgnt_flx = mgnt_ar*im
+mgnt_flx = mgnt_ar*im_corr
 
 if keyword_set(display) then begin
     loadct,0,/silent
     if not keyword_set(ps) then window,3,xsize=display_xsize,ysize=display_ysize,retain=2 
     plot,[1,1],/nodata,xstyle=5,ystyle=5
-    tv,bytscl(congrid(mgnt_flx,display_xsize,display_ysize),min=min(mgnt_flx/10.0,/nan),max=max(mgnt_flx/10.0,/nan))
+    tv,bytscl(congrid(mgnt_flux_corr,display_xsize,display_ysize),min=min(mgnt_flux_corr/10.0,/nan),max=max(mgnt_flux_corr/10.0,/nan))
     loadct, 13
     plots, (N_pl[0,*] + hfx)*display_zoom, (N_pl[1,*] + hfy)*display_zoom ,color=200,/device,thick=3
     plots, (E_pl[0,*] + hfx)*display_zoom, (E_pl[1,*] + hfy)*display_zoom ,color=200*3/6,/device,thick=3
@@ -351,7 +393,6 @@ if keyword_set(display) then begin
     tvcircle,di*display_zoom, hfx*display_zoom,hfy*display_zoom,color=200*2/6,/device,thick=3
     loadct, 0
 endif
-
 
 CRD_out = {im_raw: imgs0, im_crr: im, hdr:hdr_in, mgnt_ar:mgnt_ar, mgnt_flx:mgnt_flx, Xar:Xar, Yar:Yar, Zar:Zar, Lath:Lath, Lonh:Lonh}
 
