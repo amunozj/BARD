@@ -255,7 +255,6 @@ if instr eq 4 then begin
 	
 endif else begin
 
-
 	datel = fxpar(hdr_l, 'DATE_OBS')
 
 	;KPVT-512
@@ -284,7 +283,7 @@ endif else begin
 		;Define center and radius
 		hfxl = fxpar(hdr_l, 'CRPIX1A');35;'CRPIX1');  Location of the center in x pixels 
 		hfyl = fxpar(hdr_l, 'CRPIX2A');+1.0;    Location of the center in y pixels
-		dil = fxpar(hdr_l,'EPH_R0')/fxpar(hdr_in,'SCALE');
+		dil = fxpar(hdr_l,'EPH_R0')/fxpar(hdr_l,'SCALE');
 
 		;Load Solar Coordinates
 		P0l = 0.0
@@ -372,7 +371,7 @@ endif else begin
 		;Define center and radius
 		hfxr = fxpar(hdr_r, 'CRPIX1A');35;'CRPIX1');  Location of the center in x pixels 
 		hfyr = fxpar(hdr_r, 'CRPIX2A');+1.0;    Location of the center in y pixels
-		dir = fxpar(hdr_r,'EPH_R0')/fxpar(hdr_in,'SCALE');
+		dir = fxpar(hdr_r,'EPH_R0')/fxpar(hdr_r,'SCALE');
 
 		;Load Solar Coordinates
 		P0r = 0.0
@@ -1300,6 +1299,7 @@ REPEAT BEGIN
      ;stat = 0
      mdi_il = mdi_ir
      mgl = mgr
+     hdrl = hdrr
   endif
 
   if (stat eq 1) then begin
@@ -1976,6 +1976,7 @@ REPEAT BEGIN
          END	  
     14: BEGIN
         	print, 'Longitudinal Guide'
+
 			amj_pick_long, hdrr, hdrl, ARs, latlr, Lonhrl, Lonhrr, pls, pad, plxy, plxx, d_zoom, instr
 			
 			;print, Lonhrl

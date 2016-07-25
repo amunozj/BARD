@@ -177,19 +177,19 @@ PRO amj_mgplot, im, mdi_i, instr, hdr_i=hdr_i, mdi_rf = mdi_rf, hdr_f=hdr_rf, se
 		    if instr eq 2 then begin
 		    
 		        ;Define center and radius
-		        hfx = fxpar(hdr_in, 'CRPIX1A');35;'CRPIX1');  Location of the center in x pixels 
-		        hfy = fxpar(hdr_in, 'CRPIX2A');+1.0;    Location of the center in y pixels
-		        di = fxpar(hdr_in,'EPH_R0')/fxpar(hdr_in,'SCALE');
+		        hfxi = fxpar(hdr_i, 'CRPIX1A');35;'CRPIX1');  Location of the center in x pixels 
+		        hfyi = fxpar(hdr_i, 'CRPIX2A');+1.0;    Location of the center in y pixels
+		        dii = fxpar(hdr_i,'EPH_R0')/fxpar(hdr_i,'SCALE');
 
 		        ;Load Solar Coordinates
-		        P0 = 0.0
-		        RD = !values.f_nan
-		        B0 = fxpar(hdr_in, 'EPH_B0')
-		        L0 = fxpar(hdr_in, 'EPH_L0')
+		        P0i = 0.0
+		        RDi = !values.f_nan
+		        B0i = fxpar(hdr_i, 'EPH_B0')
+		        L0i = fxpar(hdr_i, 'EPH_L0')
 
 		        ;Observer Coordinates
-		        X_scl = fxpar(hdr_in, 'CDELT1')*fxpar(hdr_in, 'CRR_SCLX')/60.0
-		        Y_scl = fxpar(hdr_in, 'CDELT2')*fxpar(hdr_in, 'CRR_SCLY')/60.0
+		        X_scli = fxpar(hdr_i, 'CDELT1')*fxpar(hdr_i, 'CRR_SCLX')/60.0
+		        Y_scli = fxpar(hdr_i, 'CDELT2')*fxpar(hdr_i, 'CRR_SCLY')/60.0
 
 		    endif
     
@@ -264,19 +264,19 @@ PRO amj_mgplot, im, mdi_i, instr, hdr_i=hdr_i, mdi_rf = mdi_rf, hdr_f=hdr_rf, se
 		    if instr eq 2 then begin
 		    
 		        ;Define center and radius
-		        hfx = fxpar(hdr_in, 'CRPIX1A');35;'CRPIX1');  Location of the center in x pixels 
-		        hfy = fxpar(hdr_in, 'CRPIX2A');+1.0;    Location of the center in y pixels
-		        di = fxpar(hdr_in,'EPH_R0')/fxpar(hdr_in,'SCALE');
+		        hfxrf = fxpar(hdr_rf, 'CRPIX1A');35;'CRPIX1');  Location of the center in x pixels 
+		        hfyrf = fxpar(hdr_rf, 'CRPIX2A');+1.0;    Location of the center in y pixels
+		        dirf = fxpar(hdr_rf,'EPH_R0')/fxpar(hdr_rf,'SCALE');
 
 		        ;Load Solar Coordinates
-		        P0 = 0.0
-		        RD = !values.f_nan
-		        B0 = fxpar(hdr_in, 'EPH_B0')
-		        L0 = fxpar(hdr_in, 'EPH_L0')
+		        P0rf = 0.0
+		        RDrf = !values.f_nan
+		        B0rf = fxpar(hdr_rf, 'EPH_B0')
+		        L0rf = fxpar(hdr_rf, 'EPH_L0')
 
 		        ;Observer Coordinates
-		        X_scl = fxpar(hdr_in, 'CDELT1')*fxpar(hdr_in, 'CRR_SCLX')/60.0
-		        Y_scl = fxpar(hdr_in, 'CDELT2')*fxpar(hdr_in, 'CRR_SCLY')/60.0
+		        X_sclrf = fxpar(hdr_rf, 'CDELT1')*fxpar(hdr_rf, 'CRR_SCLX')/60.0
+		        Y_sclrf = fxpar(hdr_rf, 'CDELT2')*fxpar(hdr_rf, 'CRR_SCLY')/60.0
 
 		    endif
 
@@ -419,19 +419,19 @@ PRO amj_mgplot, im, mdi_i, instr, hdr_i=hdr_i, mdi_rf = mdi_rf, hdr_f=hdr_rf, se
 		    if instr eq 2 then begin
 		    
 		        ;Define center and radius
-		        hfx = fxpar(hdr_in, 'CRPIX1A');35;'CRPIX1');  Location of the center in x pixels 
-		        hfy = fxpar(hdr_in, 'CRPIX2A');+1.0;    Location of the center in y pixels
-		        di = fxpar(hdr_in,'EPH_R0')/fxpar(hdr_in,'SCALE');
+		        hfxi = fxpar(hdr_i, 'CRPIX1A');35;'CRPIX1');  Location of the center in x pixels 
+		        hfyi = fxpar(hdr_i, 'CRPIX2A');+1.0;    Location of the center in y pixels
+		        dii = fxpar(hdr_i,'EPH_R0')/fxpar(hdr_i,'SCALE');
 
 		        ;Load Solar Coordinates
-		        P0 = 0.0
-		        RD = !values.f_nan
-		        B0 = fxpar(hdr_in, 'EPH_B0')
-		        L0 = fxpar(hdr_in, 'EPH_L0')
+		        P0i = 0.0
+		        RDi = !values.f_nan
+		        B0i = fxpar(hdr_i, 'EPH_B0')
+		        L0i = fxpar(hdr_i, 'EPH_L0')
 
 		        ;Observer Coordinates
-		        X_scl = fxpar(hdr_in, 'CDELT1')*fxpar(hdr_in, 'CRR_SCLX')/60.0
-		        Y_scl = fxpar(hdr_in, 'CDELT2')*fxpar(hdr_in, 'CRR_SCLY')/60.0
+		        X_scli = fxpar(hdr_i, 'CDELT1')*fxpar(hdr_i, 'CRR_SCLX')/60.0
+		        Y_scli = fxpar(hdr_i, 'CDELT2')*fxpar(hdr_i, 'CRR_SCLY')/60.0
 
 		    endif			
 
