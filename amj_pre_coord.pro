@@ -15,7 +15,7 @@ endif
 
 ;KPVT SMPG
 if instr eq 2 then begin
-  dir_str = 'SMPG'
+  dir_str = 'SPMG'
   seg_const={ker_th:400.0, ker_th2:200.0, ar_th:150.0, ar_th2:50.0, eros_size:10.0, dila_size:20.0, npssu:2, dis_lim:2.0, ovr_lim: 0.2, qr_th:60.0, mxB: 0.0, k_sig:15.0, ar_grow_sig:20., valid_range:[-20000.,20000.], deg_lim:70.0}
 endif 
   
