@@ -58,13 +58,31 @@ if instr eq 4 then DayOff = julday(1,1,2009); HMI
 ;Main Loop
 for i = min_date, max_date do begin
    
-  mdi_il = i;
+  lw_msw = 1
+  n_itr = 0
+  mdi_il = i
+  if lw_msw ne 0 then begin
+    print, 'Looking for valid Reference Window magnetogram' 
+    repeat begin
+        ;Reading files 
+        caldat, mdi_il+DayOff, Month, Day, Year
+        datel = strtrim(string(Year),2)+'-'+strtrim(string(Month,format='(I02)'),2)+'-'+strtrim(string(Day,format='(I02)'),2)
+        print, datel
+        mgl = amj_file_read( datel, hdrl, instr )
+    
+        sl = size(mgl)
+    
+      mdi_il = mdi_il + lw_msw
+      n_itr = n_itr+1
+      
+    endrep until ( (sl[2] eq 8) or (n_itr gt 365) )
+  
+    mdi_il = mdi_il - lw_msw
+    lw_msw = 0
 
-  ;Reading files
-  caldat, mdi_il + DayOff, Month, Day, Year
-  datel = strtrim(string(Year),2)+'-'+strtrim(string(Month,format='(I02)'),2)+'-'+strtrim(string(Day,format='(I02)'),2)
-  print, datel
-  mgl = amj_file_read(datel, hdrl, instr)
+  endif
+
+  i = mdi_il
   
   sz=size(mgl.img)
   d_zoom = pls/float(sz[1])
@@ -76,7 +94,7 @@ for i = min_date, max_date do begin
   ;Exploration Window
   ;AR overlay
   if keyword_set(prt) then begin
-	amj_mgplot, mgl.img, mdi_il, ARs = ARs, d_xsize = pls, d_ysize = pls, max = 300, pos = [2.0*pad, pad+plxy, pls+2.0*pad, pls+pad+plxy], title = datel, xrange = [min(mgl.x), max(mgl.x)] , yrange = [min(mgl.y), max(mgl.y)], sqs_nm = i-minimum+1, /prt, /shw_lbl   
+	amj_mgplot, mgl.img, mdi_il, ARs = ARs, d_xsize = pls, d_ysize = pls, max = 300, pos = [2.0*pad, pad+plxy, pls+2.0*pad, pls+pad+plxy], title = datel, xrange = [min(mgl.x), max(mgl.x)] , yrange = [min(mgl.y), max(mgl.y)], sqs_nm = i-min_date+1, /prt, /shw_lbl   
   endif else begin
 	amj_mgplot, mgl.img, mdi_il, ARs = ARs, d_xsize = pls, d_ysize = pls, max = 300, pos = [2.0*pad, pad+plxy, pls+2.0*pad, pls+pad+plxy], title = datel, xrange = [min(mgl.x), max(mgl.x)] , yrange = [min(mgl.y), max(mgl.y)], /shw_lbl
   endelse

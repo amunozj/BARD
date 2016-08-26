@@ -509,7 +509,7 @@ print_ysize=sz[2]*print_zoom
 
 
 if keyword_set(sqs_nm) then begin
-    flnm = '/nfs/hl0/data/mdeluca/work/movie/AR' + strtrim(string(sqs_nm/1000.,'(F5.3)'),2) + '.eps'
+    flnm = '/nfs/hl0/data/munoz/BARD/HMImovie/HMI' + strtrim(string(sqs_nm/1000.,'(F5.3)'),2) + '.eps'
 endif
 
 
