@@ -146,7 +146,7 @@ endif
 ;
 ;set the display window size and display threshold
 ;
-display_zoom=0.125
+display_zoom=0.25
 display_xsize=sz[1]*display_zoom & display_ysize=sz[2]*display_zoom  
 
 print_zoom=1.0
@@ -196,8 +196,9 @@ for n=0,seg_const.npssu-1 do begin
     
     ;New detection of positive and negative regions
 ;    amj_pnr_dt_core, CRD_t,  mdi_i, PNR_t, instr, seg_const = seg_const_tmp, pltn = (6*n), /All_ng, /detdisp;, /display, /info 
-    amj_pnr_dt_core, CRD_t,  mdi_i, PNR_t, instr, seg_const = seg_const_tmp, pltn = (6*n);, /detdisp;, /display, /info 
-      
+    amj_pnr_dt_core, CRD_t,  mdi_i, PNR_t, instr, seg_const = seg_const_tmp, pltn = (8*n);, /detdisp, /prt;, /display, /info 
+    
+    ;stop 
     ;removal of detected positive regions from the magnetogram
     if (PNR_t.num_p ge 1) then begin
       
@@ -240,29 +241,87 @@ for n=0,seg_const.npssu-1 do begin
 
 endfor
 
+
+; Creating reference image
+
+
+im_mask = im*0.0
+if (n_regp ge 1) then begin
+    for i=0,n_regp-1 do begin
+        inp = long(strsplit(pregions[i].indx,/extract))
+        im_mask[inp] = 1 
+    endfor
+endif
+
+if (n_regn ge 1) then begin
+    for i=0,n_regn-1 do begin
+        inn= long(strsplit(nregions[i].indx,/extract))
+        im_mask[inn] = -1 
+    endfor
+endif
+
 if keyword_set(detdisp) then begin
-    window,3,xsize=display_xsize,ysize=display_ysize,retain=2
+    window,1,xsize=display_xsize,ysize=display_ysize,retain=2
     plot,[1,1],/nodata,xstyle=5,ystyle=5
     loadct, 0, /silent
-    tv,bytscl(congrid(im,display_xsize,display_ysize),min=display_thresholdd,max=display_thresholdu)
+    ;tv,bytscl(congrid(im,display_xsize,display_ysize),min=display_thresholdd,max=display_thresholdu)
+    tv,bytscl(congrid(im_mask,display_xsize,display_ysize),min=-1,max=1)
     loadct, 0, /silent
 
     if (n_regp ge 1) then begin
         for i=0,n_regp-1 do begin
-            str='P'+strtrim(string(i+1,'(I2)'),2)
-            xyouts,pregions[i].fcenxp*display_zoom,pregions[i].fcenyp*display_zoom,str,charsize=1.5, color=255,/device
+            ;str='P'+strtrim(string(i+1,'(I2)'),2)
+            ;xyouts,pregions[i].fcenxp*display_zoom,pregions[i].fcenyp*display_zoom,str,charsize=1.5, color=255,/device
             tvcircle,2.0*pregions[i].dcenp*display_zoom, pregions[i].fcenxp*display_zoom,pregions[i].fcenyp*display_zoom, color=255,/device
         endfor
     endif
 
     if (n_regn ge 1) then begin
         for i=0,n_regn-1 do begin
-            str='N'+strtrim(string(i+1,'(I2)'),2)
-            xyouts,nregions[i].fcenxp*display_zoom,nregions[i].fcenyp*display_zoom,str,charsize=1.5, color=0,/device
+            ;str='N'+strtrim(string(i+1,'(I2)'),2)
+            ;xyouts,nregions[i].fcenxp*display_zoom,nregions[i].fcenyp*display_zoom,str,charsize=1.5, color=0,/device
             tvcircle,2.0*nregions[i].dcenp*display_zoom, nregions[i].fcenxp*display_zoom, nregions[i].fcenyp*display_zoom, color=0,/device
         endfor
     endif
     
+endif
+
+if keyword_set(prt) then begin
+    set_plot,'PS'
+    device, filename='Mgntgram_reg_all.eps'
+    device,/color,bits_per_pixel=8,/portr,/inches,xsize=6.0,ysize=6.0,$
+    xoff=0.5,yoff=0.5
+    !p.position=[0.0,0.0,1.0,1.0]  
+    !x.window=[0.0,1.0]
+    !y.window=[0.0,1.0]
+    px = !x.window * !d.x_vsize ;Get size of window in device units
+    py = !y.window * !d.y_vsize
+    
+    loadct, 0, /silent
+    plot,[1,1],/nodata,xstyle=5,ystyle=5
+    tv,bytscl(congrid(im_mask,display_xsize,display_ysize),min=-1,max=1)
+    ;tv,bytscl(congrid(imgs0,print_xsize,print_ysize),min=display_thresholdd,max=display_thresholdu)
+   
+    if (n_regp gt 0) then begin
+        for i=0,n_regp-1 do begin
+            ;str='P'+strtrim(string(i+1,'(I2)'),2)
+            ;xyouts,pregions[i].fcenxp*print_zoom/sz[1]*px[1],pregions[i].fcenyp*print_zoom/sz[2]*py[1],str,charsize=2, color=255,/device
+            tvcircle,2.0*pregions[i].dcenp*print_zoom/sz[1]*px[1], pregions[i].fcenxp*print_zoom/sz[1]*px[1],pregions[i].fcenyp*print_zoom/sz[2]*py[1], color=255, thick=3,/device
+        endfor
+    endif
+
+    if (n_regn gt 0) then begin
+        for i=0,n_regn-1 do begin
+            ;str='N'+strtrim(string(i+1,'(I2)'),2)
+            ;xyouts,nregions[i].fcenxp*print_zoom/sz[1]*px[1],nregions[i].fcenyp*print_zoom/sz[2]*py[1],str,charsize=2, color=0,/device
+            tvcircle,2.0*nregions[i].dcenp*print_zoom/sz[1]*px[1], nregions[i].fcenxp*print_zoom/sz[1]*px[1], nregions[i].fcenyp*print_zoom/sz[2]*py[1], color=0, thick=3,/device
+        endfor
+    endif
+    
+    device, /close
+    set_plot,'X'
+    loadct, 0, /silent           
+   
 endif
 
 
@@ -507,30 +566,84 @@ if (n_regn gt 0) then begin
 endif
 
 
+im_mask = im*0.0
+if (n_regp ge 1) then begin
+    for i=0,n_regp-1 do begin
+        inp = long(strsplit(pregions[i].indx,/extract))
+        im_mask[inp] = 1 
+    endfor
+endif
+
+if (n_regn ge 1) then begin
+    for i=0,n_regn-1 do begin
+        inn= long(strsplit(nregions[i].indx,/extract))
+        im_mask[inn] = -1 
+    endfor
+endif
+
 
 if keyword_set(detdisp) then begin
-    window,7,xsize=display_xsize,ysize=display_ysize,retain=2
+    window,2,xsize=display_xsize,ysize=display_ysize,retain=2
     plot,[1,1],/nodata,xstyle=5,ystyle=5
     loadct, 0, /silent
-    tv,bytscl(congrid(im,display_xsize,display_ysize),min=display_thresholdd,max=display_thresholdu)
+    ;tv,bytscl(congrid(im,display_xsize,display_ysize),min=display_thresholdd,max=display_thresholdu)
+    tv,bytscl(congrid(im_mask,display_xsize,display_ysize),min=-1,max=1)
     loadct, 0, /silent
 
     if (n_regp ge 1) then begin
         for i=0,n_regp-1 do begin
-            str='P'+strtrim(string(i+1,'(I2)'),2)
-            xyouts,pregions[i].fcenxp*display_zoom,pregions[i].fcenyp*display_zoom,str,charsize=1.5, color=255,/device
+            ;str='P'+strtrim(string(i+1,'(I2)'),2)
+            ;xyouts,pregions[i].fcenxp*display_zoom,pregions[i].fcenyp*display_zoom,str,charsize=1.5, color=255,/device
             tvcircle,2.0*pregions[i].dcenp*display_zoom, pregions[i].fcenxp*display_zoom,pregions[i].fcenyp*display_zoom, color=255,/device
         endfor
     endif
 
     if (n_regn gt 0) then begin
         for i=0,n_regn-1 do begin
-            str='N'+strtrim(string(i+1,'(I2)'),2)
-            xyouts,nregions[i].fcenxp*display_zoom,nregions[i].fcenyp*display_zoom,str,charsize=1.5, color=0,/device
+            ;str='N'+strtrim(string(i+1,'(I2)'),2)
+            ;xyouts,nregions[i].fcenxp*display_zoom,nregions[i].fcenyp*display_zoom,str,charsize=1.5, color=0,/device
             tvcircle,2.0*nregions[i].dcenp*display_zoom, nregions[i].fcenxp*display_zoom, nregions[i].fcenyp*display_zoom, color=0,/device
         endfor
     endif
     
+endif
+
+if keyword_set(prt) then begin
+    set_plot,'PS'
+    device, filename='Mgntgram_reg_all_join.eps'
+    device,/color,bits_per_pixel=8,/portr,/inches,xsize=6.0,ysize=6.0,$
+    xoff=0.5,yoff=0.5
+    !p.position=[0.0,0.0,1.0,1.0]  
+    !x.window=[0.0,1.0]
+    !y.window=[0.0,1.0]
+    px = !x.window * !d.x_vsize ;Get size of window in device units
+    py = !y.window * !d.y_vsize
+    
+    loadct, 0, /silent
+    plot,[1,1],/nodata,xstyle=5,ystyle=5
+    tv,bytscl(congrid(im_mask,display_xsize,display_ysize),min=-1,max=1)
+    ;tv,bytscl(congrid(imgs0,print_xsize,print_ysize),min=display_thresholdd,max=display_thresholdu)
+   
+    if (n_regp gt 0) then begin
+        for i=0,n_regp-1 do begin
+            ;str='P'+strtrim(string(i+1,'(I2)'),2)
+            ;xyouts,pregions[i].fcenxp*print_zoom/sz[1]*px[1],pregions[i].fcenyp*print_zoom/sz[2]*py[1],str,charsize=2, color=255,/device
+            tvcircle,2.0*pregions[i].dcenp*print_zoom/sz[1]*px[1], pregions[i].fcenxp*print_zoom/sz[1]*px[1],pregions[i].fcenyp*print_zoom/sz[2]*py[1], color=255, thick=3,/device
+        endfor
+    endif
+
+    if (n_regn gt 0) then begin
+        for i=0,n_regn-1 do begin
+            ;str='N'+strtrim(string(i+1,'(I2)'),2)
+            ;xyouts,nregions[i].fcenxp*print_zoom/sz[1]*px[1],nregions[i].fcenyp*print_zoom/sz[2]*py[1],str,charsize=2, color=0,/device
+            tvcircle,2.0*nregions[i].dcenp*print_zoom/sz[1]*px[1], nregions[i].fcenxp*print_zoom/sz[1]*px[1], nregions[i].fcenyp*print_zoom/sz[2]*py[1], color=0, thick=3,/device
+        endfor
+    endif
+    
+    device, /close
+    set_plot,'X'
+    loadct, 0, /silent           
+   
 endif
 
 ;stop
@@ -912,25 +1025,42 @@ endif
 ;display the extracted regions
 ;
 
-if (keyword_set(display) or keyword_set(detdisp)) then begin
-    window,11,xsize=display_xsize,ysize=display_ysize,retain=2
+im_mask = im*0.0
+if (n_regp ge 1) then begin
+    for i=0,n_regp-1 do begin
+        inp = long(strsplit(pregions[i].indx,/extract))
+        im_mask[inp] = 1 
+    endfor
+endif
+
+if (n_regn ge 1) then begin
+    for i=0,n_regn-1 do begin
+        inn= long(strsplit(nregions[i].indx,/extract))
+        im_mask[inn] = -1 
+    endfor
+endif
+
+
+if keyword_set(detdisp) then begin
+    window,3,xsize=display_xsize,ysize=display_ysize,retain=2
     plot,[1,1],/nodata,xstyle=5,ystyle=5
     loadct, 0, /silent
-    tv,bytscl(congrid(im,display_xsize,display_ysize),min=display_thresholdd,max=display_thresholdu)
+    ;tv,bytscl(congrid(im,display_xsize,display_ysize),min=display_thresholdd,max=display_thresholdu)
+    tv,bytscl(congrid(im_mask,display_xsize,display_ysize),min=-1,max=1)
     loadct, 0, /silent
 
-    if (n_regp gt 0) then begin
+    if (n_regp ge 1) then begin
         for i=0,n_regp-1 do begin
-            str='P'+strtrim(string(i+1,'(I2)'),2)
-            xyouts,pregions[i].fcenxp*display_zoom,pregions[i].fcenyp*display_zoom,str,charsize=1.5, color=255,/device
+            ;str='P'+strtrim(string(i+1,'(I2)'),2)
+            ;xyouts,pregions[i].fcenxp*display_zoom,pregions[i].fcenyp*display_zoom,str,charsize=1.5, color=255,/device
             tvcircle,2.0*pregions[i].dcenp*display_zoom, pregions[i].fcenxp*display_zoom,pregions[i].fcenyp*display_zoom, color=255,/device
         endfor
     endif
 
     if (n_regn gt 0) then begin
         for i=0,n_regn-1 do begin
-            str='N'+strtrim(string(i+1,'(I2)'),2)
-            xyouts,nregions[i].fcenxp*display_zoom,nregions[i].fcenyp*display_zoom,str,charsize=1.5, color=0,/device
+            ;str='N'+strtrim(string(i+1,'(I2)'),2)
+            ;xyouts,nregions[i].fcenxp*display_zoom,nregions[i].fcenyp*display_zoom,str,charsize=1.5, color=0,/device
             tvcircle,2.0*nregions[i].dcenp*display_zoom, nregions[i].fcenxp*display_zoom, nregions[i].fcenyp*display_zoom, color=0,/device
         endfor
     endif
@@ -940,7 +1070,7 @@ endif
 
 if keyword_set(prt) then begin
     set_plot,'PS'
-    device, filename='Mgntgram_reg.eps'
+    device, filename='Mgntgram_reg_all_mrg.eps'
     device,/color,bits_per_pixel=8,/portr,/inches,xsize=6.0,ysize=6.0,$
     xoff=0.5,yoff=0.5
     !p.position=[0.0,0.0,1.0,1.0]  
@@ -951,20 +1081,21 @@ if keyword_set(prt) then begin
     
     loadct, 0, /silent
     plot,[1,1],/nodata,xstyle=5,ystyle=5
-    tv,bytscl(congrid(imgs0,print_xsize,print_ysize),min=display_thresholdd,max=display_thresholdu)
+    tv,bytscl(congrid(im_mask,display_xsize,display_ysize),min=-1,max=1)
+    ;tv,bytscl(congrid(imgs0,print_xsize,print_ysize),min=display_thresholdd,max=display_thresholdu)
    
     if (n_regp gt 0) then begin
         for i=0,n_regp-1 do begin
-            str='P'+strtrim(string(i+1,'(I2)'),2)
-            xyouts,pregions[i].fcenxp*print_zoom/sz[1]*px[1],pregions[i].fcenyp*print_zoom/sz[2]*py[1],str,charsize=2, color=255,/device
+            ;str='P'+strtrim(string(i+1,'(I2)'),2)
+            ;xyouts,pregions[i].fcenxp*print_zoom/sz[1]*px[1],pregions[i].fcenyp*print_zoom/sz[2]*py[1],str,charsize=2, color=255,/device
             tvcircle,2.0*pregions[i].dcenp*print_zoom/sz[1]*px[1], pregions[i].fcenxp*print_zoom/sz[1]*px[1],pregions[i].fcenyp*print_zoom/sz[2]*py[1], color=255, thick=3,/device
         endfor
     endif
 
     if (n_regn gt 0) then begin
         for i=0,n_regn-1 do begin
-            str='N'+strtrim(string(i+1,'(I2)'),2)
-            xyouts,nregions[i].fcenxp*print_zoom/sz[1]*px[1],nregions[i].fcenyp*print_zoom/sz[2]*py[1],str,charsize=2, color=0,/device
+            ;str='N'+strtrim(string(i+1,'(I2)'),2)
+            ;xyouts,nregions[i].fcenxp*print_zoom/sz[1]*px[1],nregions[i].fcenyp*print_zoom/sz[2]*py[1],str,charsize=2, color=0,/device
             tvcircle,2.0*nregions[i].dcenp*print_zoom/sz[1]*px[1], nregions[i].fcenxp*print_zoom/sz[1]*px[1], nregions[i].fcenyp*print_zoom/sz[2]*py[1], color=0, thick=3,/device
         endfor
     endif
@@ -976,6 +1107,45 @@ if keyword_set(prt) then begin
 endif
 
 
+if keyword_set(prt) then begin
+    set_plot,'PS'
+    device, filename='Mgntgram_reg_all_mgn.eps'
+    device,/color,bits_per_pixel=8,/portr,/inches,xsize=6.0,ysize=6.0,$
+    xoff=0.5,yoff=0.5
+    !p.position=[0.0,0.0,1.0,1.0]  
+    !x.window=[0.0,1.0]
+    !y.window=[0.0,1.0]
+    px = !x.window * !d.x_vsize ;Get size of window in device units
+    py = !y.window * !d.y_vsize
+    
+    loadct, 0, /silent
+    plot,[1,1],/nodata,xstyle=5,ystyle=5
+    ;tv,bytscl(congrid(im_mask,display_xsize,display_ysize),min=-1,max=1)
+    tv,bytscl(congrid(CRD_in.im_crr,print_xsize,print_ysize),min=display_thresholdd,max=display_thresholdu)
+   
+    if (n_regp gt 0) then begin
+        for i=0,n_regp-1 do begin
+            ;str='P'+strtrim(string(i+1,'(I2)'),2)
+            ;xyouts,pregions[i].fcenxp*print_zoom/sz[1]*px[1],pregions[i].fcenyp*print_zoom/sz[2]*py[1],str,charsize=2, color=255,/device
+            tvcircle,2.0*pregions[i].dcenp*print_zoom/sz[1]*px[1], pregions[i].fcenxp*print_zoom/sz[1]*px[1],pregions[i].fcenyp*print_zoom/sz[2]*py[1], color=255, thick=3,/device
+        endfor
+    endif
+
+    if (n_regn gt 0) then begin
+        for i=0,n_regn-1 do begin
+            ;str='N'+strtrim(string(i+1,'(I2)'),2)
+            ;xyouts,nregions[i].fcenxp*print_zoom/sz[1]*px[1],nregions[i].fcenyp*print_zoom/sz[2]*py[1],str,charsize=2, color=0,/device
+            tvcircle,2.0*nregions[i].dcenp*print_zoom/sz[1]*px[1], nregions[i].fcenxp*print_zoom/sz[1]*px[1], nregions[i].fcenyp*print_zoom/sz[2]*py[1], color=0, thick=3,/device
+        endfor
+    endif
+    
+    device, /close
+    set_plot,'X'
+    loadct, 0, /silent           
+   
+endif
+
+;stop
 ;print, junk
 
 return

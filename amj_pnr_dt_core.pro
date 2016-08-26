@@ -146,13 +146,13 @@ print, 'Ker_th', seg_const.ker_th, 'Ar_th', seg_const.ar_th
 
 ;
 ;set the display window size and threshold----------------------------------------------------------
-display_zoom=0.5
+display_zoom=0.25
 display_xsize=sz[1]*display_zoom & display_ysize=sz[2]*display_zoom  
 
 print_zoom=1.0
 print_xsize=sz[1]*print_zoom & print_ysize=sz[2]*print_zoom 
 
-display_thresholdu = 1000.00
+display_thresholdu = 350.00
 display_thresholdd = - display_thresholdu       
 
 
@@ -249,10 +249,34 @@ g_th_max=max(abs(seg_const.valid_range))
 
 ;display Image------------------------------------------------
 if keyword_set(detdisp) then begin
-    window,2+pltn,xsize=display_xsize,ysize=display_ysize,retain=2
+    window,4+pltn,xsize=display_xsize,ysize=display_ysize,retain=2
     plot,[1,1],/nodata,xstyle=5,ystyle=5
     tv,bytscl(congrid(im,display_xsize,display_ysize),min=display_thresholdd,max=display_thresholdu)
 endif
+
+
+if keyword_set(prt) then begin
+    set_plot,'PS'
+    device, filename='Mgntgram_raw.eps'
+    device,/color,bits_per_pixel=8,/portr,/inches,xsize=6.0,ysize=6.0,$
+    xoff=0.5,yoff=0.5
+    !p.position=[0.0,0.0,1.0,1.0]  
+    !x.window=[0.0,1.0]
+    !y.window=[0.0,1.0]
+    px = !x.window * !d.x_vsize ;Get size of window in device units
+    py = !y.window * !d.y_vsize
+    
+    loadct, 0, /silent
+    plot,[1,1],/nodata,xstyle=5,ystyle=5
+
+    tv,bytscl(congrid(im,display_xsize,display_ysize),min=display_thresholdd,max=display_thresholdu)
+    
+    device, /close
+    set_plot,'X'
+    loadct, 0, /silent           
+   
+endif
+
 
 
 
@@ -276,18 +300,43 @@ endif
 ;display kernel pixels
 ;Positive polarity
 im_kp=fltarr(sz[1],sz[2])
+im_kp[where( finite(im,/nan) )] = !values.f_nan
 if n_kp gt 0 then im_kp(ind_kp)=1.0
 ;Negative polarity
 im_kn=fltarr(sz[1],sz[2])
+im_kn[where( finite(im,/nan) )] = !values.f_nan
 if n_kn gt 0 then im_kn(ind_kn)=1.0
 
 ;
 ;Kernel Display------------------------------------------------
 
 if keyword_set(detdisp) then begin
-    window,0+pltn,xsize=display_xsize,ysize=display_ysize,retain=2
+    window,5+pltn,xsize=display_xsize,ysize=display_ysize,retain=2
     plot,[1,1],/nodata,xstyle=5,ystyle=5
-    tv,bytscl(congrid(im_kp-im_kn,display_xsize,display_ysize))
+    tv,bytscl(congrid(im_kp-im_kn,display_xsize,display_ysize),min=-1,max=1)
+endif
+
+
+if keyword_set(prt) then begin
+    set_plot,'PS'
+    device, filename='Mgntgram_Ker.eps'
+    device,/color,bits_per_pixel=8,/portr,/inches,xsize=6.0,ysize=6.0,$
+    xoff=0.5,yoff=0.5
+    !p.position=[0.0,0.0,1.0,1.0]  
+    !x.window=[0.0,1.0]
+    !y.window=[0.0,1.0]
+    px = !x.window * !d.x_vsize ;Get size of window in device units
+    py = !y.window * !d.y_vsize
+    
+    loadct, 0, /silent
+    plot,[1,1],/nodata,xstyle=5,ystyle=5
+
+    tv,bytscl(congrid(im_kp-im_kn,display_xsize,display_ysize),min=-1,max=1)
+    
+    device, /close
+    set_plot,'X'
+    loadct, 0, /silent           
+   
 endif
 
 
@@ -325,12 +374,19 @@ im_op  = dilate(im_op,s2)  ;Second dilation to merge cores
 im_op  = erode(im_op,s2)   ;image after morphological closing operation
 ind_op = where(im_op gt 0,n_op)
 
+tim_op = double(im_op)
+tim_op[where( finite(im,/nan) )] = !values.f_nan
+
+
 ;Negative Polarity
 im_on  = erode(im_kn,s)
 im_on  = dilate(im_on,s)   ;image after morphological opening operation
 im_on  = dilate(im_on,s2)  ;Second dilation to merge cores
 im_on  = erode(im_on,s2)   ;image after morphological closing operation
 ind_on = where(im_on gt 0,n_on)
+
+tim_on = double(im_on)
+tim_on[where( finite(im,/nan) )] = !values.f_nan
 
 
 if keyword_set(info) then print,';IMAGE: percentage of kernel pixels after morphological opening and closing operation=',string(float(n_op+n_on)/n_valid*100,'(F7.3)')+"%"
@@ -342,9 +398,31 @@ endif
 
 ;display kernel pixels after erosion and merging------------------------------------------------
 if keyword_set(detdisp) then begin
-    window,1+pltn,xsize=display_xsize,ysize=display_ysize,retain=2
+    window,6+pltn,xsize=display_xsize,ysize=display_ysize,retain=2
     plot,[1,1],/nodata,xstyle=5,ystyle=5
-    tv,bytscl(congrid(double(im_op)-double(im_on),display_xsize,display_ysize))
+    tv,bytscl(congrid(double(tim_op)-double(tim_on),display_xsize,display_ysize),min=-1,max=1)
+endif
+
+if keyword_set(prt) then begin
+    set_plot,'PS'
+    device, filename='Mgntgram_ClKer.eps'
+    device,/color,bits_per_pixel=8,/portr,/inches,xsize=6.0,ysize=6.0,$
+    xoff=0.5,yoff=0.5
+    !p.position=[0.0,0.0,1.0,1.0]  
+    !x.window=[0.0,1.0]
+    !y.window=[0.0,1.0]
+    px = !x.window * !d.x_vsize ;Get size of window in device units
+    py = !y.window * !d.y_vsize
+    
+    loadct, 0, /silent
+    plot,[1,1],/nodata,xstyle=5,ystyle=5
+
+    tv,bytscl(congrid(double(tim_op)-double(tim_on),display_xsize,display_ysize),min=-1,max=1)
+    
+    device, /close
+    set_plot,'X'
+    loadct, 0, /silent           
+   
 endif
 
 ;---------------------------------------------------------------------------------------------------------
@@ -588,6 +666,9 @@ for n=0,2.0*seg_const.npssu-1 do begin
 endfor
 
 
+im_mask = im_kp*0.0
+
+
 ;Calculating Region parameters----------------------------------------------------
 ;Positive regions
 if (n_regp gt 0) then begin
@@ -596,6 +677,7 @@ if (n_regp gt 0) then begin
             
         ;Extracting indices
         ind_gn = long(strsplit(pregions[i].indx,/extract))
+        im_mask[ind_gn] = 1
         
         ;Calculating parameters----------------------------------------------------
         flux  = total(CRD_in.mgnt_flx[ind_gn],/double, /nan)       ;total flux
@@ -663,6 +745,7 @@ if (n_regn gt 0) then begin
     
         ;Extracting indices
         ind_gn = long(strsplit(nregions[i].indx,/extract))
+        im_mask[ind_gn] = -1
 
         ;Calculating parameters----------------------------------------------------
         flux  = total(CRD_in.mgnt_flx[ind_gn],/double, /nan)       ;total flux
@@ -729,24 +812,25 @@ endif
 ;display the extracted regions
 ;
 if (keyword_set(display) or keyword_set(detdisp)) then begin
-    window,5+pltn,xsize=display_xsize,ysize=display_ysize,retain=2
+    window,7+pltn,xsize=display_xsize,ysize=display_ysize,retain=2
     plot,[1,1],/nodata,xstyle=5,ystyle=5
     loadct, 0, /silent
-    tv,bytscl(congrid(imgs0,display_xsize,display_ysize),min=display_thresholdd,max=display_thresholdu)
+    tv,bytscl(congrid(im_mask,display_xsize,display_ysize),min=-1,max=1)
+    ;tv,bytscl(congrid(imgs0,display_xsize,display_ysize),min=display_thresholdd,max=display_thresholdu)
     loadct, 0, /silent
 
     if (n_regp gt 0) then begin
         for i=0,n_regp-1 do begin
-            str='P'+strtrim(string(i+1,'(I2)'),2)
-            xyouts,pregions[i].fcenxp*display_zoom,pregions[i].fcenyp*display_zoom,str,charsize=1.5, color=255,/device
+            ;str='P'+strtrim(string(i+1,'(I2)'),2)
+            ;xyouts,pregions[i].fcenxp*display_zoom,pregions[i].fcenyp*display_zoom,str,charsize=1.5, color=255,/device
             tvcircle,2.0*pregions[i].dcenp*display_zoom, pregions[i].fcenxp*display_zoom,pregions[i].fcenyp*display_zoom, color=255,/device
         endfor
     endif
 
     if (n_regn gt 0) then begin
         for i=0,n_regn-1 do begin
-            str='N'+strtrim(string(i+1,'(I2)'),2)
-            xyouts,nregions[i].fcenxp*display_zoom,nregions[i].fcenyp*display_zoom,str,charsize=1.5, color=0,/device
+            ;str='N'+strtrim(string(i+1,'(I2)'),2)
+            ;xyouts,nregions[i].fcenxp*display_zoom,nregions[i].fcenyp*display_zoom,str,charsize=1.5, color=0,/device
             tvcircle,2.0*nregions[i].dcenp*display_zoom, nregions[i].fcenxp*display_zoom, nregions[i].fcenyp*display_zoom, color=0,/device
         endfor
     endif
@@ -766,20 +850,21 @@ if keyword_set(prt) then begin
     
     loadct, 0, /silent
     plot,[1,1],/nodata,xstyle=5,ystyle=5
-    tv,bytscl(congrid(imgs0,print_xsize,print_ysize),min=display_thresholdd,max=display_thresholdu)
+    tv,bytscl(congrid(im_mask,display_xsize,display_ysize),min=-1,max=1)
+    ;tv,bytscl(congrid(imgs0,print_xsize,print_ysize),min=display_thresholdd,max=display_thresholdu)
    
     if (n_regp gt 0) then begin
         for i=0,n_regp-1 do begin
-            str='P'+strtrim(string(i+1,'(I2)'),2)
-            xyouts,pregions[i].fcenxp*print_zoom/sz[1]*px[1],pregions[i].fcenyp*print_zoom/sz[2]*py[1],str,charsize=2, color=255,/device
+            ;str='P'+strtrim(string(i+1,'(I2)'),2)
+            ;xyouts,pregions[i].fcenxp*print_zoom/sz[1]*px[1],pregions[i].fcenyp*print_zoom/sz[2]*py[1],str,charsize=2, color=255,/device
             tvcircle,2.0*pregions[i].dcenp*print_zoom/sz[1]*px[1], pregions[i].fcenxp*print_zoom/sz[1]*px[1],pregions[i].fcenyp*print_zoom/sz[2]*py[1], color=255, thick=3,/device
         endfor
     endif
 
     if (n_regn gt 0) then begin
         for i=0,n_regn-1 do begin
-            str='N'+strtrim(string(i+1,'(I2)'),2)
-            xyouts,nregions[i].fcenxp*print_zoom/sz[1]*px[1],nregions[i].fcenyp*print_zoom/sz[2]*py[1],str,charsize=2, color=0,/device
+            ;str='N'+strtrim(string(i+1,'(I2)'),2)
+            ;xyouts,nregions[i].fcenxp*print_zoom/sz[1]*px[1],nregions[i].fcenyp*print_zoom/sz[2]*py[1],str,charsize=2, color=0,/device
             tvcircle,2.0*nregions[i].dcenp*print_zoom/sz[1]*px[1], nregions[i].fcenxp*print_zoom/sz[1]*px[1], nregions[i].fcenyp*print_zoom/sz[2]*py[1], color=0, thick=3,/device
         endfor
     endif

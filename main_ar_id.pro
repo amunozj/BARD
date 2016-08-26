@@ -1323,7 +1323,9 @@ REPEAT BEGIN
         	CRD_mdi_i = mdi_ir
         endif
 
-        amj_pnr_dt, CRD, mdi_ir, PRs, NRs, instr, seg_const=seg_const;, /disp,/not_merge, /detdisp
+        amj_pnr_dt, CRD, mdi_ir, PRs, NRs, instr, seg_const=seg_const;, /detdisp,/prt;,/not_merge, /detdisp
+
+        ;stop
 
         detpn_sw = 0   
       endif
@@ -1345,7 +1347,7 @@ REPEAT BEGIN
       		endelse
         	CRD_mdi_i = mdi_ir
         endif                       
-        amj_ar_dt_track_dr, CRD, mdi_ir, lbl, PRs, NRs, ARs, mgr.date, ar_cnst=ar_cnst, seg_const=seg_const;,/display;, /bck_trck;, /display
+        amj_ar_dt_track_dr, CRD, mdi_ir, lbl, PRs, NRs, ARs, mgr.date, ar_cnst=ar_cnst, seg_const=seg_const;,/display,/prt;, /bck_trck;, /display
         detar_sw = 0
         mdi_ir_vis = [mdi_ir_vis,mdi_ir]
       endif
@@ -1868,16 +1870,11 @@ REPEAT BEGIN
 					tmp_seg_const.ovr_lim = 0.7
 					;tmp_seg_const.dila_size=5
 
-					if CRD_mdi_i ne mdi_ir then begin
-						if keyword_set(pre_coord) then begin
-							amj_pre_coord_read, instr, mdi_ir, CRD
-						endif else begin
-							amj_coord, mgr.img, hdrr, CRD, instr, seg_const=seg_const;, /disp
-						endelse
-						CRD_mdi_i = mdi_ir
-					endif          			               
+					amj_coord, tmp_im, hdrr, CRD_tmp, instr, seg_const=seg_const;, /disp
+
+
 					print, 'Detecting fragmets...'
-					amj_pnr_dt, CRD, mdi_ir, tmp_PRs, tmp_NRs, seg_const=tmp_seg_const, pnr_lbl = -999;,/not_merge;, /detdisp
+					amj_pnr_dt, CRD_tmp, mdi_ir, tmp_PRs, tmp_NRs, instr, seg_const=tmp_seg_const, pnr_lbl = -999;,/not_merge;, /detdisp
 
 	            endif
 	              

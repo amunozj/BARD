@@ -149,23 +149,14 @@ endif
 ;
 ;set the display window size
 ;
-display_zoom=0.125
+display_zoom=0.25
 display_xsize=sz[1]*display_zoom & display_ysize=sz[2]*display_zoom  
 
 print_zoom=1.0
 print_xsize=sz[1]*print_zoom & print_ysize=sz[2]*print_zoom 
 
-
-;
-;image basic information-------------------------------------------------------------
-;
-ind_valid=where(im ge ar_cnst.valid_range[0] and im le ar_cnst.valid_range[1],n_valid,com=ind_invalid,ncom=n_invalid)
-mom=moment(im(ind_valid))
-im_mean=mom[0]
-im_sigma = sqrt(mom[1]) ; the standard deviation of the whole effective image
-im_med=median(im(ind_valid))
-display_thresholdu = im_mean+im_sigma*ar_cnst.k_sig
-display_thresholdd = - display_thresholdu       
+display_thresholdu = 350.0
+display_thresholdd = - display_thresholdu        
 
 ;Defining colors to maximise distance
 clrsqs = [0,255,127]
@@ -1087,18 +1078,18 @@ if keyword_set(prt) then begin
     
     if (n_ars gt 1) then begin
         for i=0,n_ars-2 do begin
-            str='P'+strtrim(string(ARs[i].labl,'(I5)'),2)
+            ;str='P'+strtrim(string(ARs[i].labl,'(I5)'),2)
             
             loadct, 13, /silent
             
             !P.COLOR=long(ARs[i].clr)
-            xyouts,ARs[i].fcenxpp*px/sz[1],ARs[i].fcenypp*py/sz[2],str,charsize=1.5,charthick = 4,/device
+            ;xyouts,ARs[i].fcenxpp*px/sz[1],ARs[i].fcenypp*py/sz[2],str,charsize=1.5,charthick = 4,/device
 ;            xyouts,ARs[i].fcenxpp*px/sz[1],ARs[i].fcenypp*py/sz[2],str,charsize=1.5,charthick = 2,color = long(ARs[i].clr),/device
             tvcircle,2.0*ARs[i].dcenpp*px/sz[1], ARs[i].fcenxpp*px/sz[1],ARs[i].fcenypp*py/sz[2], color = strtrim(string(ARs[i].clr,'(I3)'),2), thick=4,/device
             
-            str='N'+strtrim(string(ARs[i].labl,'(I5)'),2)
+            ;str='N'+strtrim(string(ARs[i].labl,'(I5)'),2)
             !P.COLOR=long(ARs[i].clr)
-            xyouts,ARs[i].fcenxpn*px/sz[1],ARs[i].fcenypn*py/sz[2],str,charsize=1.5,charthick = 4,/device
+            ;xyouts,ARs[i].fcenxpn*px/sz[1],ARs[i].fcenypn*py/sz[2],str,charsize=1.5,charthick = 4,/device
 ;            xyouts,ARs[i].fcenxpn*px/sz[1],ARs[i].fcenypn*py/sz[2],str,charsize=1.5,charthick = 2,color= long(ARs[i].clr),/device
             tvcircle,2.0*ARs[i].dcenpn*px/sz[1], ARs[i].fcenxpn*px/sz[1],ARs[i].fcenypn*py/sz[2], color = strtrim(string(ARs[i].clr,'(I3)'),2), thick=4,/device
     
@@ -1116,6 +1107,8 @@ if keyword_set(prt) then begin
     
     
 endif
+
+;stop
 
 ;print, junk
 
